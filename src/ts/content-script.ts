@@ -2,8 +2,6 @@ import { Config } from "./types";
 import { TAGNAME as ElementTagName } from "./ext-simploupe";
 import { dispatchEvent } from "./util";
 (async () => {
-    console.log("run!");
-
     // manifest
     const manifest = chrome.runtime.getManifest();
     console.log( "manifest", manifest );

@@ -173,8 +173,6 @@ export const styles = css`
         }
     }
 
-    /* skin 1
-    --------------------------------- */
     &[data-skin='1'] {
         background-color: transparent;
         &:before {
