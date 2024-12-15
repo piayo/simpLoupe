@@ -1,5 +1,5 @@
 import { Config } from "./types";
-import { TAGNAME as ElementTagName } from "./ext-simplupe";
+import { TAGNAME as ElementTagName } from "./ext-simploupe";
 import { dispatchEvent } from "./util";
 (async () => {
     console.log("run!");
