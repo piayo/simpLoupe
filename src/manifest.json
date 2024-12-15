@@ -1,0 +1,48 @@
+{
+  "manifest_version": 3,
+  "name": "simpLoupe",
+  "version": "2.0.0",
+  "default_locale": "ja",
+  "description": "__MSG_extDes__",
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
+  "permissions": [
+    "contextMenus",
+    "activeTab",
+    "storage",
+    "tabs"
+  ],
+  "optional_host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "js/service-worker.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "all_frames": false,
+      "matches": [
+        "https://*/*",
+        "http://*/*"
+      ],
+      "js": [
+        "js/content-script.js"
+      ],
+      "run_at": "document_end"
+    }
+  ],
+  "action": {
+    "default_title": "Toggle simpLoupe"
+  },
+  "icons": {
+    "16": "img/icon_016.png",
+    "19": "img/icon_019.png",
+    "32": "img/icon_032.png",
+    "48": "img/icon_048.png",
+    "72": "img/icon_072.png",
+    "96": "img/icon_096.png",
+    "128": "img/icon_128.png"
+  }
+}

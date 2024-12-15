@@ -1,0 +1,37 @@
+{
+  "name": "simpLoupe",
+  "version": "2.0.0",
+  "description": "",
+  "author": "piayo",
+  "license": "GPL",
+  "type": "module",
+  "scripts": {
+    "clean": "rimraf dist",
+    "dev": "npm-run-all -s clean copy:* dev:vite",
+    "dev:vite": "vite build --watch --mode development",
+    "build": "npm-run-all -s clean build:* copy:*",
+    "build:version": "node ./syncVersion.js",
+    "build:js": "tsc && vite build",
+    "copy": "npm-run-all -s copy:*",
+    "copy:locales": "copyfiles -u 2 src/_locales/**/* dist/_locales",
+    "copy:img": "copyfiles -f src/img/* dist/img",
+    "copy:manifest": "copyfiles -f src/manifest.json dist",
+    "zip": "npm-build-zip --source=dist",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.243",
+    "@types/node": "^22.9.3",
+    "copyfiles": "^2.4.1",
+    "npm-build-zip": "^1.0.4",
+    "npm-run-all": "^4.1.5",
+    "rimraf": "^6.0.1",
+    "rollup-plugin-minify-template-literals": "^1.1.7",
+    "typescript": "^5.7.2",
+    "vite": "^5.4.11"
+  },
+  "dependencies": {
+    "@webcomponents/custom-elements": "^1.6.0",
+    "lit": "^3.2.1"
+  }
+}
