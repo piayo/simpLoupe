@@ -1,8 +1,8 @@
-# G-calize
+# simpLoupe
 
-**G-calize** is a Chrome Extension for Google Calendar.
+**simpLoupe** is a Chrome Extension, Just the Simple Loupe Tool..
 
-see: [https://chromewebstore.google.com/detail/g-calize/piiljfhidimfponnkjlkecnpjhdijfde](https://chromewebstore.google.com/detail/g-calize/piiljfhidimfponnkjlkecnpjhdijfde)
+see: [https://chromewebstore.google.com/detail/anbodbalmohikmogemapjmdodlgkegmg](https://chromewebstore.google.com/detail/anbodbalmohikmogemapjmdodlgkegmg)
 
 ## dev
 
