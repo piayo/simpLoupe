@@ -40,9 +40,10 @@ export const styles = css`
     pointer-events: none;
 
     position: fixed;
-    inset: 0;
-    width: auto;
-    height: auto;
+    left: 0;
+    top: 0;
+    width: 100dvw;
+    height: 100dvh;
     max-width: none;
     max-height: none;
     margin: 0;
@@ -177,22 +178,27 @@ export const styles = css`
         background-color: transparent;
         &:before {
             box-shadow:
-                0 1px 15px rgba(0, 0, 0, 0.4);
+                0 4px 16px rgba(0, 0, 0, 0.2),
+                0 1px 4px rgba(0, 0, 0, 0.2);
         }
         &:after {
-            box-shadow: inset 0 1px 16px rgba(255, 255, 255, 0.04);
+            box-shadow:
+                inset 0 1px 32px rgb(255,255,255, 0.06),
+                inset 0 0px 1px 0px rgb(255,255,255, 0.4);
         }
     }
 
     &[data-skin='2'] {
         &:before {
-            margin: -8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-            border: 8px solid rgba(255, 255, 255, 0.4);
+            margin: -12px;
+            border: 12px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.2);
         }
         &:after {
-            box-shadow: inset 0px 0px 9px rgba(0, 0, 0, 0.4);
-            border: 1px solid #fff;
+            border: 1px solid rgba(255,255,255,0.6);
+            box-shadow:
+                inset rgba(0, 0, 0, 0.2) 0px 0px 4px,
+                inset rgba(0, 0, 0, 0.1) 0px 2px 12px;
         }
     }
 
@@ -203,7 +209,8 @@ export const styles = css`
             background: linear-gradient(to bottom, #939393 0%, #292929 100%);
             box-shadow:
                 inset 0 1px 1px rgba(255, 255, 255, 0.5),
-                inset 0 -1px 1px #000, 0 1px 15px rgba(0, 0, 0, 0.5);
+                inset 0 -1px 1px #000,
+                0 4px 24px rgba(0, 0, 0, 0.4);
         }
         &:after {
             z-index: 1;
@@ -222,16 +229,20 @@ export const styles = css`
                 inset 0 6px 16px -1px rgba(0, 0, 0, 0.3),
                 inset 0 0 6px rgba(0, 0, 0, 0.5);
             &:after {
-                -webkit-filter: blur(2px);
+                -webkit-filter: blur(8px);
+                filter: blur(8px);
                 content: '';
                 position: relative;
                 display: block;
                 height: 100%;
                 top: 0;
                 left: 0;
-                margin: 2px;
+                margin: 6px;
                 border-radius: inherit;
-                background: linear-gradient(180deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 50%, rgba(255,255,255,0) 100%);
+                background:
+                    linear-gradient(180deg, rgba(255,255,255,0.12) 0%,
+                    transparent  40%,
+                    transparent 100%);
             }
         }
     }
