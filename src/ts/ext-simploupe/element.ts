@@ -92,7 +92,7 @@ export class ExtSimpLoupeElement extends LitElement {
         if ( this.open ) {
             return false;
         }
-
+        this.view.loaded = false;
         this.open = true;
         dialog.showModal();
         this.on();

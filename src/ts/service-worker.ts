@@ -18,6 +18,9 @@ import { Config } from "./types";
         return chrome.storage.local.set({[key]: json})
     }
 
+    let _timer: any = null;
+    let _prevData = "";
+
     function onMessageHandler(
         data: any,
         sender: chrome.runtime.MessageSender,
@@ -55,16 +58,21 @@ import { Config } from "./types";
         }
         // ▼ キャプチャ取得
         if ( data.command === "capture" ) {
-            new Promise( async resolve => {
-                const windowID = sender.tab!.windowId;
-                const dataURL = await chrome.tabs.captureVisibleTab(windowID, {format:"png"});
-                // console.log("dataURL", dataURL);
-                resolve({ dataURL });
-            })
-            .then( res => sendResponse( res ) )
-            .catch((error) => {
-                console.log("chrome.runtime.onMessage -> command:", data.command, error);
-            });
+            clearTimeout(_timer);
+            setTimeout( async () => {
+                try {
+                    const windowID = sender.tab!.windowId;
+                    const zoom     = await chrome.tabs.getZoom();
+                    const dataURL  = _prevData = await chrome.tabs.captureVisibleTab(windowID, {format:"png"});
+                    console.log("zoom", zoom);
+                    console.log("dataURL", dataURL);
+                    sendResponse({ dataURL });
+                }
+                catch ( error ) {
+                    console.log("chrome.runtime.onMessage -> command:", data.command, error);
+                    sendResponse({ dataURL: _prevData });
+                }
+            }, 100);
             return true;
         }
 
@@ -110,10 +118,15 @@ import { Config } from "./types";
         // console.log("...", (chrome.contextMenus as any )[_menuID]);
     }
 
+    const notWorks = [
+        /^https?:\/\/chromewebstore.google.com/,
+        /^https?:\/\/chrome.google.com\/webstore\//,
+        /^chrome:\/\//,
+        /^file:\/\//,
+    ];
+
     function isAdaptableURL( url: string ): boolean {
-        const isStore   = /^https?:\/\/chromewebstore.google.com/.test( url );
-        const isSetting = /^chrome:\/\//.test( url );
-        return ( isStore === false ) && ( isSetting === false );
+        return notWorks.every( regx => !regx.test( url ) );
     }
 
     // タブ切り替えでブラウザアイコン有効/無効を消えりかえ
