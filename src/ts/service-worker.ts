@@ -115,7 +115,6 @@ import { Config } from "./types";
                 "https://*/*"
             ]
         });
-        // console.log("...", (chrome.contextMenus as any )[_menuID]);
     }
 
     const notWorks = [
@@ -133,9 +132,7 @@ import { Config } from "./types";
     async function onActivatedHandler( { tabId }: chrome.tabs.TabActiveInfo ): Promise<void> {
         try {
             const tab = await chrome.tabs.get( tabId );
-            // console.log("tab", tab);
             const menuID = getContextMenu( _menuID );
-            // console.log("...menuID:", menuID, "isAdaptableURL( tab.url )", isAdaptableURL( tab.url ?? "" ) );
             if( isAdaptableURL( tab.url ?? "" ) ){
                 await chrome.action.enable();
                 chrome.contextMenus.update( menuID, { enabled: true });

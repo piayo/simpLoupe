@@ -206,14 +206,12 @@ export class ExtSimpLoupeElement extends LitElement {
             dx, dy, dw, dh
         );
         contenxt.restore();
-        // console.log("...drawCapture", { sx, sy, sw, sh });
     }
 
     toggleSetting(): void {
         if ( this.showSetting ) {
             this.showSetting = false;
             this.on();
-            // dispatchEvent( document, "scroll" );
             return;
         }
         this.showSetting = true;
@@ -318,7 +316,7 @@ export class ExtSimpLoupeElement extends LitElement {
                         </tr>
                     </table>
                 </div>
-            </div><!-- /.loupe -->
+            </div>
         </dialog>`;
     }
 }

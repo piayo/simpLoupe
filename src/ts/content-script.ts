@@ -21,7 +21,6 @@ import { dispatchEvent } from "./util";
     simpLoupeElement.addEventListener( "getCapture", async () => {
         try {
             const { dataURL } = await chrome.runtime.sendMessage<any, {dataURL: string}>({command: "capture" });
-            // console.log("dataURL!!", dataURL);
             simpLoupeElement.view.captureImage.src = dataURL;
             dispatchEvent( simpLoupeElement, "updatedCapture" );
         }
@@ -41,7 +40,6 @@ import { dispatchEvent } from "./util";
     });
 
     chrome.runtime.onMessage.addListener( (request ) => {
-        // console.log({request, sender, sendResponse});
         if ( request.command === "toggleSimpLoupe" ) {
             simpLoupeElement.toggle();
         }

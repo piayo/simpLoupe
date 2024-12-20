@@ -87,9 +87,6 @@ export const styles = css`
     background-color: rgba(255,255,255,0.5);
     cursor: var(--cursor);
 
-    /* width: 320px;
-    height: 320px; */
-
     &:before,
     &:after,
     .canvas,
