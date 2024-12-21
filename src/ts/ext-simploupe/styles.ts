@@ -187,9 +187,10 @@ export const styles = css`
 
     &[data-skin='2'] {
         &:before {
-            margin: -12px;
-            border: 12px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.2);
+            margin: -16px;
+            border: 16px solid rgba(255, 255, 255, 0.16);
+            box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 14px;
+            backdrop-filter: blur(1px);
         }
         &:after {
             border: 1px solid rgba(255,255,255,0.6);
