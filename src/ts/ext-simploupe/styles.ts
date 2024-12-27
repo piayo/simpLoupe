@@ -10,7 +10,7 @@ export const styles = css`
 }
 
 :host {
-    display: contents;
+    display: contents !important;
     color: #333;
     font-size: 14px;
     text-rendering: geometricPrecision;
