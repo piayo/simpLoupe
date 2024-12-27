@@ -6,6 +6,8 @@
 import { defaultConfig } from "./data";
 import { Config } from "./types";
 
+const MENU_ID = "simpLoupe/toggle";
+
 (() => {
 
     async function getStorage<T>( key: string, fallback?: T ): Promise<T> {
@@ -62,10 +64,10 @@ import { Config } from "./types";
             setTimeout( async () => {
                 try {
                     const windowID = sender.tab!.windowId;
-                    const zoom     = await chrome.tabs.getZoom();
                     const dataURL  = _prevData = await chrome.tabs.captureVisibleTab(windowID, {format:"png"});
-                    console.log("zoom", zoom);
-                    console.log("dataURL", dataURL);
+                    // console.log("dataURL", dataURL);
+                    // const zoom     = await chrome.tabs.getZoom();
+                    // console.log("zoom", zoom);
                     sendResponse({ dataURL });
                 }
                 catch ( error ) {
@@ -96,17 +98,10 @@ import { Config } from "./types";
             });
     }
 
-    const _menuID = "simpLoupe/toggle";
-
-    function getContextMenu( id: string ): any {
-        return (chrome.contextMenus as any )[id] ?? null;
-    }
-
     // 右クリックメニュー追加
     function onInstalledHandler(): void {
-        chrome.contextMenus.removeAll();
-        (chrome.contextMenus as any )[_menuID] = chrome.contextMenus.create({
-            id: _menuID,
+        chrome.contextMenus.create({
+            id: MENU_ID,
             title: "toggle simpLoupe",
             type: "normal",
             contexts: [ "page" ],
@@ -132,14 +127,13 @@ import { Config } from "./types";
     async function onActivatedHandler( { tabId }: chrome.tabs.TabActiveInfo ): Promise<void> {
         try {
             const tab = await chrome.tabs.get( tabId );
-            const menuID = getContextMenu( _menuID );
             if( isAdaptableURL( tab.url ?? "" ) ){
                 await chrome.action.enable();
-                chrome.contextMenus.update( menuID, { enabled: true });
+                chrome.contextMenus.update( MENU_ID, { enabled: true });
             }
             else {
                 await chrome.action.disable();
-                chrome.contextMenus.update( menuID, { enabled: false });
+                chrome.contextMenus.update( MENU_ID, { enabled: false });
             }
         }
         catch ( error ) {
