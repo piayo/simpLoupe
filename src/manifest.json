@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "simpLoupe",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "default_locale": "ja",
   "description": "__MSG_extDes__",
   "content_security_policy": {
