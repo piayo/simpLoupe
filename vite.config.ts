@@ -21,7 +21,7 @@ export default defineConfig(({ mode }) => {
                 },
             },
             lib: {
-                name: "gcalize",
+                name: "lib",
                 fileName: (format, entryName) => `${entryName}.js`,
                 entry: {
                     "js/content-script"  : "src/ts/content-script.ts",
