@@ -3,6 +3,7 @@ import { html, LitElement, type TemplateResult } from "lit";
 import { customElement, property, query, state } from "lit/decorators.js";
 
 import { delay, dispatchEvent, getCSSTransitionDuration } from "../util";
+import { T } from "../i18n";
 import { Config } from "../types";
 import { styles } from "./styles";
 
@@ -72,19 +73,19 @@ export class ExtSimpLoupeElement extends LitElement {
         this.view.loaded = false;
         this.requestUpdate();
         this.timer = setTimeout( () => this.updateCapture(), 100 );
-    }).bind(this);
+    });
 
     _onresizelHandler = (() => {
         clearTimeout(this.timer);
         this.view.loaded = false;
         this.requestUpdate();
         this.timer = setTimeout( () => this.updateCapture(), 100 );
-    }).bind(this);
+    });
 
     _mousemoveHandler = (( event: MouseEvent ) => {
         this.updatePosition({ x: event.x, y: event.y });
         this.drawCapture();
-    }).bind(this);
+    });
 
     show(): boolean {
         super.requestUpdate();
@@ -219,8 +220,8 @@ export class ExtSimpLoupeElement extends LitElement {
     }
 
     commit(): void {
-        this.view.width  = 160 + (80 * this.config.size),
-        this.view.height = 160 + (80 * this.config.size),
+        this.view.width  = 160 + (80 * this.config.size);
+        this.view.height = 160 + (80 * this.config.size);
         this.requestUpdate();
 
         dispatchEvent(this, "save");
@@ -269,7 +270,7 @@ export class ExtSimpLoupeElement extends LitElement {
                     </div>
                     <table class="table">
                         <tr>
-                            <th>zoom:</th>
+                            <th>${T( "label.zoom" )}:</th>
                             <td>
                                 <input type="range" name="zoom" style="width: 80px;"
                                     min="2"
@@ -281,7 +282,7 @@ export class ExtSimpLoupeElement extends LitElement {
                             </td>
                         </tr>
                         <tr>
-                            <th>size:</th>
+                            <th>${T( "label.size" )}:</th>
                             <td>
                                 <input type="range" name="size" style="width: 80px;"
                                     min="2"
@@ -293,25 +294,28 @@ export class ExtSimpLoupeElement extends LitElement {
                             </td>
                         </tr>
                         <tr>
-                            <th>shape:</th>
+                            <th>${T( "label.shape" )}:</th>
                             <td @change=${(e: any) => (config.shape = e.target.value) && this.commit()}>
-                                <label><input type="radio" name="shape" value="round" .checked=${shape === "round"}> round</label>
-                                <label><input type="radio" name="shape" value="quare" .checked=${shape === "quare"}> quare</label>
+                                <label><input type="radio" name="shape" value="round" .checked=${shape === "round"}> ${T( "shape.round" )}</label>
+                                <!-- value="quare" は square の綴り間違いだが、保存済みの設定と非互換になるため据え置き。
+                                     表示ラベルだけ正しい綴りにしている (キーは shape.square) -->
+                                <label><input type="radio" name="shape" value="quare" .checked=${shape === "quare"}> ${T( "shape.square" )}</label>
                             </td>
                         </tr>
                         <tr>
-                            <th>skin:</th>
+                            <th>${T( "label.skin" )}:</th>
                             <td @change=${(e: any) => (config.skin = e.target.value) && this.commit()}>
+                                <!-- 選択肢は数字なので翻訳しない -->
                                 <label><input type="radio" name="skin" value="1" .checked=${skin === "1"}> 1</label>
                                 <label><input type="radio" name="skin" value="2" .checked=${skin === "2"}> 2</label>
                                 <label><input type="radio" name="skin" value="3" .checked=${skin === "3"}> 3</label>
                             </td>
                         </tr>
                         <tr>
-                            <th>cursor:</th>
+                            <th>${T( "label.cursor" )}:</th>
                             <td @change=${(e: any) => (config.cursor = e.target.value) && this.commit()}>
-                                <label><input type="radio" name="cursor" value="crosshair" .checked=${cursor === "crosshair"}> cross</label>
-                                <label><input type="radio" name="cursor" value="none"      .checked=${cursor === "none"}> none</label>
+                                <label><input type="radio" name="cursor" value="crosshair" .checked=${cursor === "crosshair"}> ${T( "cursor.crosshair" )}</label>
+                                <label><input type="radio" name="cursor" value="none"      .checked=${cursor === "none"}> ${T( "cursor.none" )}</label>
                             </td>
                         </tr>
                     </table>

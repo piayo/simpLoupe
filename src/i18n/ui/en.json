@@ -1,0 +1,11 @@
+{
+    "label.zoom"      : "zoom",
+    "label.size"      : "size",
+    "label.shape"     : "shape",
+    "label.skin"      : "skin",
+    "label.cursor"    : "cursor",
+    "shape.round"     : "round",
+    "shape.square"    : "square",
+    "cursor.crosshair": "crosshair",
+    "cursor.none"     : "none"
+}

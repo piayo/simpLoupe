@@ -1,0 +1,44 @@
+{
+    "$schema": "./node_modules/oxlint/configuration_schema.json",
+    "env": {
+        "browser": true,
+        "es2024": true,
+        "webextensions": true
+    },
+    "categories": {
+        "correctness": "error",
+        "suspicious": "warn",
+        "perf": "warn"
+    },
+    "rules": {
+        // `cond && fn()` を短絡実行の記法として使っているため許可する
+        // service-worker.ts の `tab && chrome.tabs.sendMessage(...)`
+        // element.ts の `onload && ( this.view.captureImage.onload = ... )`
+        "no-unused-expressions": "off",
+        // 内部変数・内部フィールドに `_` 接頭辞を付けるのは本リポジトリの規約
+        // `_timer` `_prevData` `_viewTransition` `_mousemoveHandler` など
+        "no-underscore-dangle": "off",
+        // captureImage.onload はハンドラを1つだけ持ち off() で差し替えて解除する設計なので
+        // addEventListener には置き換えない
+        "unicorn/prefer-add-event-listener": "off",
+        // tsconfig の lib が ES2022 のため toSorted() が使えない（TS2550）。
+        // 該当箇所はいずれも Object.keys() / スプレッドで複製した配列に対する sort なので破壊的ではない
+        "unicorn/no-array-sort": "off",
+        // executor 内の例外は reject されず Promise が永久に未解決になる
+        "no-async-promise-executor": "error"
+    },
+    "ignorePatterns": [
+        "dist",
+        "zip",
+        "node_modules"
+    ],
+    "overrides": [
+        {
+            "files": ["*.js", "*.mjs", "scripts/**"],
+            "env": {
+                "node": true,
+                "browser": false
+            }
+        }
+    ]
+}
