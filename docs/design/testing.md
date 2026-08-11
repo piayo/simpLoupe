@@ -12,8 +12,22 @@ npm run test:coverage
 
 **サーバーが起動したままになるので、CI や自動実行では使わないでください。**
 
-**Vitest + happy-dom。** 設定は [vitest.config.ts](../../vitest.config.ts)、テストは [tests/](../../tests/) 配下。
+**Vitest + happy-dom。** 設定は [vite.config.ts](../../vite.config.ts) の `test` ブロック（`vitest.config.ts` は作りません。理由は後述）、テストは [tests/](../../tests/) 配下。
 `tsconfig.json` の `include` に `tests/**/*.ts` を入れてあるので、`npm run typecheck` の対象にもなります。
+
+### なぜ `vitest.config.ts` を作らないのか
+
+**vitest は `vitest.config.ts` があると、そちらを優先して [vite.config.ts](../../vite.config.ts) を
+完全に無視します。** 分けていると「テストが見ているコード」と「配布されるコード」が
+静かに食い違います。
+
+実際に分けていたときは `style="--cursor: none"` を期待するテストが通っていましたが、
+配布物では `minifyTemplateLiterals` が空白を削って `--cursor:none` になっていました。
+テストは通るのに、検証していた文字列が実物と違っていたわけです。
+
+同居させたうえで、**`minifyTemplateLiterals` だけはテスト時に外しています**
+（`mode === "test"` で判定）。あれはビルド時の最適化であって振る舞いではないので、
+テストは圧縮前のソースの意味を検証します。
 
 ## なぜ DOM 環境まで用意するのか
 
@@ -90,7 +104,7 @@ src 側で新しい chrome API を使い始めたら `fixtures/chrome.ts` に足
 
 ## カバレッジ
 
-`vitest.config.ts` の `coverage.include` は `src/ts/**/*.ts`。除外はこれだけです。
+[vite.config.ts](../../vite.config.ts) の `test.coverage.include` は `src/ts/**/*.ts`。除外はこれだけです。
 
 | 除外 | 理由 |
 |---|---|

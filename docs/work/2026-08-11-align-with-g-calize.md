@@ -11,7 +11,7 @@
 | | 内容 | 主な成果物 |
 |---|---|---|
 | Phase 0 | 足場。依存の総入れ替えと lint / typecheck | `package.json` / `tsconfig.json` / `.oxlintrc.json` / `.gitignore` / `.npmrc` / `.nvmrc` |
-| Phase 1 | テスト | `vitest.config.ts` / `tests/`（166本） |
+| Phase 1 | テスト | `vite.config.ts` の `test` ブロック / `tests/`（166本） |
 | Phase 2 | CI | `.github/workflows/ci.yml` |
 | Phase 3 | ドキュメント | `README.md` / `CHANGELOG.md` / `docs/` |
 | Phase 4 | AI エージェント向けの構成 | `CLAUDE.md` / `.claude/` |
