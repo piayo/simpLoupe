@@ -89,9 +89,7 @@ function banner( chunk: { modules?: Record<string, unknown> } ): string {
 // 配布物では minify-literals が空白を削って `--cursor:none` になっていた。
 export default defineConfig(({ mode }) => {
     const isProd = mode === "production";
-    // vitest 実行時は mode が "test" になる
-    const isTest = mode === "test";
-    !isTest && console.log("...mode:", mode);
+    console.log("...mode:", mode);
     return {
         root: "./",
         base: "./",
@@ -149,13 +147,17 @@ export default defineConfig(({ mode }) => {
             // v2.1.0 に `failOnError` は無い（型にもコードにも無く、失敗は常に this.warn になる）。
             // 渡しても黙って無視されるので書かない。
             //
-            // テスト時は外す。ビルド時の最適化であって振る舞いではないため、
+            // `apply: "build"` を付けているのは、この設定ファイルを vitest と共用しているため。
+            // 付けないとテストの transform でも走る。ビルド時の最適化であって振る舞いではないので、
             // テストは圧縮前のソースの意味を検証する。外さないと
             // `style="--cursor: ${cursor}"` が `--cursor:none` に縮んで属性値の検証が落ちる。
-            !isTest && minifyTemplateLiterals({
-                exclude: [ "**/node_modules/**" ],
-            }) as any,
-        ].filter( Boolean ),
+            {
+                ...minifyTemplateLiterals({
+                    exclude: [ "**/node_modules/**" ],
+                }),
+                apply: "build",
+            } as any,
+        ],
         test: {
             // 任意のページ上に置かれる Web Component とルーペの DOM を組み立てるため
             environment: "happy-dom",
