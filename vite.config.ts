@@ -1,4 +1,4 @@
-import { defineConfig } from "vite";
+import { defineConfig } from "vitest/config";
 import { minifyTemplateLiterals } from "rollup-plugin-minify-template-literals";
 
 // ▼ 配布物の著作権表示
@@ -82,9 +82,16 @@ function banner( chunk: { modules?: Record<string, unknown> } ): string {
         : BANNER_SELF;
 }
 
+// vitest の設定もこのファイルに置いている（`vitest.config.ts` は作らない）。
+// vitest は `vitest.config.ts` があるとそちらを優先して **vite.config.ts を完全に無視する**ため、
+// 分けていると「テストが見ているコード」と「配布されるコード」が静かに食い違う。
+// 実際に分けていたときは `style="--cursor: none"` を期待するテストが通っていたが、
+// 配布物では minify-literals が空白を削って `--cursor:none` になっていた。
 export default defineConfig(({ mode }) => {
     const isProd = mode === "production";
-    console.log("...mode:", mode);
+    // vitest 実行時は mode が "test" になる
+    const isTest = mode === "test";
+    !isTest && console.log("...mode:", mode);
     return {
         root: "./",
         base: "./",
@@ -141,9 +148,27 @@ export default defineConfig(({ mode }) => {
             //
             // v2.1.0 に `failOnError` は無い（型にもコードにも無く、失敗は常に this.warn になる）。
             // 渡しても黙って無視されるので書かない。
-            minifyTemplateLiterals({
+            //
+            // テスト時は外す。ビルド時の最適化であって振る舞いではないため、
+            // テストは圧縮前のソースの意味を検証する。外さないと
+            // `style="--cursor: ${cursor}"` が `--cursor:none` に縮んで属性値の検証が落ちる。
+            !isTest && minifyTemplateLiterals({
                 exclude: [ "**/node_modules/**" ],
             }) as any,
-        ],
+        ].filter( Boolean ),
+        test: {
+            // 任意のページ上に置かれる Web Component とルーペの DOM を組み立てるため
+            environment: "happy-dom",
+            include: ["tests/**/*.test.ts"],
+            coverage: {
+                provider: "v8",
+                include: ["src/ts/**/*.ts"],
+                exclude: [
+                    "src/ts/types.ts",                  // 型定義のみ。実行コードが無い
+                    "src/ts/ext-simploupe/index.ts",    // re-export のみ
+                    "src/ts/ext-simploupe/styles.ts",   // css`` の文字列のみ
+                ],
+            },
+        },
     };
 });

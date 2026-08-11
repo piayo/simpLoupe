@@ -23,7 +23,7 @@ simpLoupe の変更履歴。
 - **開発環境を g-calize と揃えた**（記録は [docs/work/2026-08-11-align-with-g-calize.md](docs/work/2026-08-11-align-with-g-calize.md)）
   - `docs/`（設計 / 作業手順 / 既知の問題 / 作業記録）と `CHANGELOG.md` / `CLAUDE.md` / `.claude/` を新設
   - `README.md` を日本語化し、環境・コマンド・構成・ドキュメント索引を追加
-  - **テストを導入**（Vitest + happy-dom、166本）。`vitest.config.ts` / `tests/`
+  - **テストを導入**（Vitest + happy-dom、166本）。設定は `vite.config.ts` に同居、テストは `tests/`
   - **lint / typecheck を導入**（oxlint / `tsc --noEmit`）。`.oxlintrc.json`
   - **CI を追加**（`.github/workflows/ci.yml`）。lint / typecheck / i18n / test / build / zip
   - **依存を総入れ替え**（vite 5→8、TypeScript 5→7、`@types/chrome` 0.0.243→0.2.5、
