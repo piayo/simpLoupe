@@ -1,0 +1,21 @@
+{
+    "_readme": [
+        "ルーペ内の設定パネル (src/ts/ext-simploupe/element.ts) に出る文言のキー定義。",
+        "Chrome が描画するテキスト (src/i18n/store/ → src/_locales/) とは別系統。混ぜないこと。",
+        "キーの並び順 = このオブジェクトの並び順。各ロケールの JSON も同じ順に並べる。",
+        "キーは意味的な ID。英語の原文をキーにしない (原文を直すと全言語が黙って壊れるため)。",
+        "fallbackLang の JSON は全キー必須。src/ts/i18n.ts の FALLBACK_LANG と一致させる。"
+    ],
+    "fallbackLang": "en",
+    "keys": {
+        "label.zoom"      : "設定パネル: 倍率スライダーのラベル",
+        "label.size"      : "設定パネル: サイズスライダーのラベル",
+        "label.shape"     : "設定パネル: 形状ラジオのラベル",
+        "label.skin"      : "設定パネル: スキンラジオのラベル (選択肢は 1/2/3 の数字なので訳さない)",
+        "label.cursor"    : "設定パネル: カーソルラジオのラベル",
+        "shape.round"     : "形状: 円 (value=\"round\")",
+        "shape.square"    : "形状: 四角 (value=\"quare\" ← 綴りは既存の保存データとの互換のため据え置き)",
+        "cursor.crosshair": "カーソル: 十字 (value=\"crosshair\")",
+        "cursor.none"     : "カーソル: 非表示 (value=\"none\")"
+    }
+}

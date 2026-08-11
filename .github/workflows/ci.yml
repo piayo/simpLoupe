@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      # i18n: キーの過不足・未定義キーの参照・生成物 (src/_locales/) のずれ
+      - name: Check i18n
+        run: npm run i18n:check
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Zip
+        run: npm run zip
+
+      # 生成物をダウンロードして動作確認できるようにする
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: simploupe-dist
+          path: zip/*.zip
+          if-no-files-found: error

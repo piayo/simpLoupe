@@ -16,8 +16,15 @@ const MENU_ID = "simpLoupe/toggle";
         return data as T;
     }
 
-    async function setStorage( key: string, json: Object|null ): Promise<void> {
+    async function setStorage( key: string, json: object|null ): Promise<void> {
         return chrome.storage.local.set({[key]: json})
+    }
+
+    // ハンドラ内で例外が出ても必ず応答を返す
+    // （無応答だと呼び出し側の `await chrome.runtime.sendMessage` が永久に未解決になる）
+    function onHandlerError( command: string, error: unknown, sendResponse: (response?: any) => void ): void {
+        console.log("chrome.runtime.onMessage -> command:", command, error);
+        sendResponse(null);
     }
 
     let _timer: any = null;
@@ -28,34 +35,35 @@ const MENU_ID = "simpLoupe/toggle";
         sender: chrome.runtime.MessageSender,
         sendResponse: (response?: any) => void
     ): boolean {
-        // console.log("data.command", data.command);
         // ▼ 保存データ取得
         if ( data.command === "getConfig" ) {
-            new Promise( async resolve => {
-                const config = await getStorage<Config>( "config", structuredClone( defaultConfig ) );
-                resolve(config);
-            })
-            .then( res => sendResponse( res ) );
+            ( async () => {
+                return await getStorage<Config>( "config", structuredClone( defaultConfig ) );
+            })()
+            .then(  res   => sendResponse( res ) )
+            .catch( error => onHandlerError( data.command, error, sendResponse ) );
             return true;
         }
         // ▼ 保存: 設定
         if ( data.command === "saveConfig" ) {
-            new Promise( async resolve => {
+            ( async () => {
                 await setStorage( "config", data.data );
-                resolve(true);
-            })
-            .then( res => sendResponse( res ) );
+                return true;
+            })()
+            .then(  res   => sendResponse( res ) )
+            .catch( error => onHandlerError( data.command, error, sendResponse ) );
             return true;
         }
         // ▼ 初期化
         if ( data.command === "reset" ) {
-            new Promise( async resolve => {
-                const config   = structuredClone( defaultConfig );
+            ( async () => {
+                const config = structuredClone( defaultConfig );
                 await chrome.storage.local.clear();
                 await setStorage( "config", config );
-                resolve( config );
-            })
-            .then( res => sendResponse( res ) );
+                return config;
+            })()
+            .then(  res   => sendResponse( res ) )
+            .catch( error => onHandlerError( data.command, error, sendResponse ) );
             return true;
         }
         // ▼ キャプチャ取得
@@ -65,9 +73,6 @@ const MENU_ID = "simpLoupe/toggle";
                 try {
                     const windowID = sender.tab!.windowId;
                     const dataURL  = _prevData = await chrome.tabs.captureVisibleTab(windowID, {format:"png"});
-                    // console.log("dataURL", dataURL);
-                    // const zoom     = await chrome.tabs.getZoom();
-                    // console.log("zoom", zoom);
                     sendResponse({ dataURL });
                 }
                 catch ( error ) {
@@ -102,7 +107,8 @@ const MENU_ID = "simpLoupe/toggle";
     function onInstalledHandler(): void {
         chrome.contextMenus.create({
             id: MENU_ID,
-            title: "toggle simpLoupe",
+            // ツールバーアイコンの tooltip (manifest の action.default_title) と同じキーを共有する
+            title: chrome.i18n.getMessage( "tglTtl" ),
             type: "normal",
             contexts: [ "page" ],
             documentUrlPatterns: [
@@ -123,8 +129,8 @@ const MENU_ID = "simpLoupe/toggle";
         return notWorks.every( regx => !regx.test( url ) );
     }
 
-    // タブ切り替えでブラウザアイコン有効/無効を消えりかえ
-    async function onActivatedHandler( { tabId }: chrome.tabs.TabActiveInfo ): Promise<void> {
+    // タブ切り替えでブラウザアイコンの有効/無効を切り替え
+    async function onActivatedHandler( { tabId }: chrome.tabs.OnActivatedInfo ): Promise<void> {
         try {
             const tab = await chrome.tabs.get( tabId );
             if( isAdaptableURL( tab.url ?? "" ) ){
@@ -158,4 +164,3 @@ const MENU_ID = "simpLoupe/toggle";
     chrome.tabs.onActivated.addListener( onActivatedHandler );
 
 })();
-

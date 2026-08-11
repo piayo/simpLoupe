@@ -1,0 +1,3 @@
+- [日本語で会話する](japanese-conversation.md) — 応答・説明・報告はすべて日本語で書く
+- [進捗を常に見せる](progress-reporting.md) — 長い作業やマルチエージェント中も黙って待たない
+- [マルチエージェント許可済み](multi-agent-approved.md) — ワークフローを使ってよい。使うときの注意点

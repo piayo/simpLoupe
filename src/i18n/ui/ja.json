@@ -1,0 +1,11 @@
+{
+    "label.zoom"      : "倍率",
+    "label.size"      : "サイズ",
+    "label.shape"     : "形状",
+    "label.skin"      : "スキン",
+    "label.cursor"    : "カーソル",
+    "shape.round"     : "円",
+    "shape.square"    : "四角",
+    "cursor.crosshair": "十字",
+    "cursor.none"     : "なし"
+}

@@ -1,6 +1,87 @@
 import { defineConfig } from "vite";
 import { minifyTemplateLiterals } from "rollup-plugin-minify-template-literals";
 
+// ▼ 配布物の著作権表示
+//
+// 同梱するサードパーティ (lit 系 = BSD-3-Clause / @webcomponents/custom-elements = Polymer の
+// BSD スタイル) は、**バイナリ配布時に著作権表示・ライセンス条項・免責事項を再掲すること**を
+// 求めている。ところが表示は build の途中で失われる:
+//
+//   1. `@license` の付かないコメント (@webcomponents のもの) は rolldown のバンドル段階で消える
+//   2. 残った `@license` コメントも minify で消える。`terserOptions.format.comments` は
+//      vite 8 (rolldown) 経由では効かない (`"some"` も正規表現も試したが無効。
+//      `compress.drop_console` は効くので terserOptions 自体は届いている)
+//
+// そのため**上流のコメントの保持に頼らず、banner に全文を書いて必ず残す**方式にしている。
+// これは法的に要求されている表示なので、消さないこと。依存を増やしたときは
+// そのライセンスをここに追記する。
+
+const BANNER_SELF = `/**
+ * @license
+ * simpLoupe <https://github.com/piayo/simpLoupe>
+ * Copyright (c) 2024 piayo
+ * SPDX-License-Identifier: MIT
+ */`;
+
+const BANNER_THIRD_PARTY = `/**
+ * @license
+ * This file bundles third-party code. Their notices follow.
+ *
+ * ----------------------------------------------------------------------------
+ * lit-html, lit-element, @lit/reactive-element
+ * Copyright (c) 2017 Google LLC. All rights reserved.
+ * SPDX-License-Identifier: BSD-3-Clause
+ *
+ * BSD 3-Clause License
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ *    list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its
+ *    contributors may be used to endorse or promote products derived from
+ *    this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * ----------------------------------------------------------------------------
+ * @webcomponents/custom-elements
+ * Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+ *
+ * This code may only be used under the BSD style license found at
+ * http://polymer.github.io/LICENSE.txt
+ * The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+ * The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+ * Code distributed by Google as part of the polymer project is also subject to
+ * an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+ * ----------------------------------------------------------------------------
+ */`;
+
+// service-worker.js は lit を含まないので、サードパーティの表示は入れない
+// （含んでいないものの表示を貼ると、かえって何が入っているか分からなくなる）
+function banner( chunk: { modules?: Record<string, unknown> } ): string {
+    const hasThirdParty = Object.keys( chunk.modules ?? {})
+        .some( id => id.includes( "node_modules" ) );
+    return hasThirdParty
+        ? `${BANNER_SELF}\n${BANNER_THIRD_PARTY}`
+        : BANNER_SELF;
+}
+
 export default defineConfig(({ mode }) => {
     const isProd = mode === "production";
     console.log("...mode:", mode);
@@ -21,7 +102,7 @@ export default defineConfig(({ mode }) => {
                 },
             },
             lib: {
-                name: "lib",
+                name: "simploupe",
                 fileName: (format, entryName) => `${entryName}.js`,
                 entry: {
                     "js/content-script"  : "src/ts/content-script.ts",
@@ -31,6 +112,7 @@ export default defineConfig(({ mode }) => {
             rollupOptions: {
                 output: {
                     format: "iife",
+                    banner,
                 },
             },
             // ファイルの変更を監視
@@ -47,8 +129,20 @@ export default defineConfig(({ mode }) => {
             ],
         },
         plugins: [
+            // html`...` / css`...` の中身を圧縮する。
+            //
+            // node_modules を除外する理由: lit の css-tag.js / reactive-element.js が
+            // `unsafeCSS` を含むため、minify-literals が
+            // "unsafeCSS() detected in source. CSS minification will not be performed for this file."
+            // を毎回2件出す。依存を圧縮する必要は無いので、走査ごと外してノイズを消す。
+            //
+            // **styles.ts は除外しないこと。** unsafeCSS を使っていないので警告の原因ではなく、
+            // 除外すると 249 行の CSS が圧縮されなくなる（現状は圧縮されている）。
+            //
+            // v2.1.0 に `failOnError` は無い（型にもコードにも無く、失敗は常に this.warn になる）。
+            // 渡しても黙って無視されるので書かない。
             minifyTemplateLiterals({
-                failOnError: false,
+                exclude: [ "**/node_modules/**" ],
             }) as any,
         ],
     };

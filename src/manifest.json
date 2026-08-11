@@ -34,7 +34,7 @@
     }
   ],
   "action": {
-    "default_title": "Toggle simpLoupe"
+    "default_title": "__MSG_tglTtl__"
   },
   "icons": {
     "16": "img/icon_016.png",

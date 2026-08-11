@@ -2,6 +2,9 @@
 
 /dist
 
+# 配布用 zip (./zip/${version}.zip)
+/zip
+
 # dependencies
 /node_modules
 
@@ -25,3 +28,6 @@ yarn-error.log*
 
 #enviroment
 /.env
+
+# Claude Code のマシン固有設定（auto-memory の保存先、node のパス等）
+.claude/settings.local.json

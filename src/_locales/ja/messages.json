@@ -1,3 +1,4 @@
 {
-	"extDes"	: { "message" : "シンプルなルーペ(拡大鏡)ツール。"}
+    "extDes": { "message": "シンプルなルーペ(拡大鏡)ツール。" },
+    "tglTtl": { "message": "simpLoupe の表示/非表示" }
 }

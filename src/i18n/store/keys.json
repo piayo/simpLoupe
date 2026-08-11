@@ -1,0 +1,21 @@
+{
+    "_readme": [
+        "Chrome / ウェブストアが描画するテキスト (src/_locales/) のキー定義。",
+        "ルーペ内 UI の文言 (src/i18n/ui/ → src/ts/i18n.ts) とは別系統。混ぜないこと。",
+        "キーの並び順 = このオブジェクトの並び順。生成される messages.json もこの順になる。",
+        "訳が無いロケールは fallbackLocale の文言で埋める (詳細は docs/design/i18n.md)。"
+    ],
+    "fallbackLocale": "en",
+    "keys": {
+        "extDes": {
+            "description": "拡張機能の説明文。ストアのページと chrome://extensions の一覧に出る",
+            "maxLength": 132,
+            "refs": [ "manifest.json: description" ]
+        },
+        "tglTtl": {
+            "description": "表示/非表示の切り替えの名前。ツールバーアイコンの tooltip と右クリックメニューの両方で使う",
+            "maxLength": 64,
+            "refs": [ "manifest.json: action.default_title", "src/ts/service-worker.ts: contextMenus.create" ]
+        }
+    }
+}
