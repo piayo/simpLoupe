@@ -124,7 +124,9 @@ npm run i18n:check # i18n データの検査（生成物のずれも見る）
 npm test           # Vitest
 ```
 
-CI ([.github/workflows/ci.yml](../.github/workflows/ci.yml)) が push / PR で同じことを実行します。
+CI ([.github/workflows/ci.yml](../.github/workflows/ci.yml)) が**全ブランチの push と PR** で同じことを実行し、
+`zip` まで作って artifact に保存します。作業ブランチを push した時点で結果が出るので、
+PR を作る前に壊れていることに気づけます。タグの push では走りません。
 
 **キャプチャと canvas の実描画は自動テストで守れません**（→ [design/testing.md](design/testing.md)）。
 `src/ts/ext-simploupe/` と `service-worker.ts` の `capture` に触ったときは、

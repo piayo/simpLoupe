@@ -1,10 +1,18 @@
 name: CI
 
 on:
+  # 全ブランチで走らせる。作業ブランチを push した時点で壊れていることに気づきたい
+  # (main と PR だけだと、PR を作るまで一度も検証されない)。タグの push では走らせない
   push:
-    branches: [main]
+    branches: ['**']
   pull_request:
   workflow_dispatch:
+
+# 同じ ref の古い実行は打ち切る。
+# PR があると push と pull_request の両方が起きるので、無駄な二重実行もこれで吸収する
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
