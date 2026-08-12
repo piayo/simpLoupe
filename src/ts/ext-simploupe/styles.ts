@@ -1,5 +1,26 @@
+/**
+ * @license
+ * Copyright (C) piayo.
+ */
+
 import { css } from "lit";
 
+/**
+ * ルーペの Shadow DOM 内の CSS。**見た目はここで完結している。**
+ *
+ * 外観の切り替えは属性セレクタで行う。element.ts が `.loupe` に
+ * `data-skin` / `data-shape` / `data-size` / `data-zoom` を付けるので、
+ * TypeScript 側で CSS を組み立てる必要はない。
+ *
+ * - `:host` に `display: contents !important` を当てている。
+ *   **サイト側の CSS で `display:none` にされても消えないようにするため**（2.0.2 の修正）
+ * - 開閉のアニメーションは `@starting-style` と `transition-behavior: allow-discrete` に頼っている。
+ *   待ち時間は `--speed`（240ms）で、element.ts が getCSSTransitionDuration() で読む。
+ *   `prefers-reduced-motion` では 0ms に落とす
+ * - ネスト CSS を使っている。CSSStyleSheet.replaceSync() 経由で入るので prefix は不要
+ *
+ * ⚠️ 一部に `gcz-` 接頭辞のコピー残りがある → docs/known-issues.md
+ */
 export const styles = css`
 
 [hidden] {

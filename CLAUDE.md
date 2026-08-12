@@ -239,6 +239,18 @@ View Transition、スキンの CSS は**実際に Chrome に読み込まない�
 [.oxlintrc.json](.oxlintrc.json) はこれらを許可するよう設定してあります。
 **規約に合わせるためだけの一括整形はしないでください。**
 
+### JSDoc の書き方
+
+- **`.ts` では型を書かない。** `@param {string}` のような型注釈は TypeScript と二重管理になります。
+  説明が要る引数だけ `@param name 説明` の形で書きます
+- **`.mjs` / `.js` では型を書く。** 型情報が他に無いので `@param {string}` まで書きます
+  （`scripts/i18n/*.mjs` がその書き方です）
+- **「何を」ではなく「なぜ」を書く。** シグネチャを日本語に訳し直しただけの説明は入れません
+- **壊しやすい前提には `⚠️` を付け、`docs/known-issues.md` か `docs/design/` を指します。**
+  既知の不具合をそのまま残している箇所は、直し方の入口をコメントから辿れるようにしてください
+- `src/**/*.ts` は全ファイル冒頭に `@license` ヘッダを置きます（build で除去されるので配布物には残りません）
+- 手本は [src/ts/i18n.ts](src/ts/i18n.ts) と [src/ts/ext-simploupe/element.ts](src/ts/ext-simploupe/element.ts) です
+
 ### i18n は2系統ある。混ぜないこと
 
 | | 単一ソース | 生成物 | 誰が描画するか |

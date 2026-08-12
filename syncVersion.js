@@ -1,3 +1,13 @@
+/**
+ * package.json の version を src/manifest.json へ同期する。
+ *
+ * **バージョンの正は package.json。** manifest.json を直接書き換えないこと。
+ * npm run build の build:version から呼ばれる。
+ *
+ * ⚠️ manifest.json を `JSON.stringify(json, null, 2)` で**丸ごと書き戻す**ので、
+ * 手で入れた整形は消える。manifest.json はインデント2スペースのまま保つこと。
+ */
+
 import { readFile, writeFile } from 'fs/promises';
 import { resolve } from 'path';
 import { fileURLToPath } from 'url';
@@ -10,6 +20,7 @@ const __dirname = resolve(__filename, '..');
 const packageJsonPath = resolve(__dirname, './package.json');
 const manifestJsonPath = resolve(__dirname, './src/manifest.json');
 
+/** package.json の version を読み、manifest.json の version に書き込む */
 async function updateManifestVersion() {
     try {
         // package.json を読み込む
