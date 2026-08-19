@@ -20,7 +20,7 @@ simpLoupe の変更履歴。
 
 ### 開発
 
-- **開発環境を g-calize と揃えた**（記録は [docs/work/2026-08-11-align-with-g-calize.md](docs/work/2026-08-11-align-with-g-calize.md)）
+- **開発環境を姉妹プロジェクトと揃えた**（記録は [docs/work/2026-08-11-align-dev-environment.md](docs/work/2026-08-11-align-dev-environment.md)）
   - `docs/`（設計 / 作業手順 / 既知の問題 / 作業記録）と `CHANGELOG.md` / `CLAUDE.md` / `.claude/` を新設
   - `README.md` を日本語化し、環境・コマンド・構成・ドキュメント索引を追加
   - **テストを導入**（Vitest + happy-dom、166本）。設定は `vite.config.ts` に同居、テストは `tests/`
@@ -37,6 +37,15 @@ simpLoupe の変更履歴。
     rolldown と minify の2段階で消えていた
   - **`license` を `MIT` に変更し、[LICENSE](LICENSE)（MIT 全文）を追加**
     （`package.json` の `"GPL"` は SPDX として無効な値で、LICENSE ファイルも無かった）
+- **整形・検証・成果物検査を追加した**（記録は [docs/work/2026-08-19-formatter-and-dist-check.md](docs/work/2026-08-19-formatter-and-dist-check.md)）
+  - **フォーマッタ (oxfmt) を導入**。`npm run fmt` / `fmt:check`、CI にも追加。
+    全ソースを一度整形したので**この変更のあとは差分の大半が整形由来**です
+  - **`npm run verify`** を追加（lint → fmt:check → typecheck → test → i18n:check）
+  - **`npm run check`（[scripts/check-dist.mjs](scripts/check-dist.mjs)）を追加**。
+    出来上がった `dist/` を検査する。`npm run zip` は verify → build → check を通さないと固めない
+  - **`.env` を追加**。`SIMPLOUPE_KEY` で拡張機能 ID を公開版に固定した検証用ビルド
+    （`build:test` / `zip:test`）、`SIMPLOUPE_KEEP_CONSOLE` で production ビルドに `console.*` を残す。
+    どちらも通常の `build` / `zip` には**入りません**
 
 ### 修正
 

@@ -1,7 +1,7 @@
-# 開発環境を g-calize に揃えた
+# 開発環境を姉妹プロジェクトに揃えた
 
 日付: 2026-08-11
-背景: 姉妹プロジェクト G-calize（同一作者の Chrome 拡張機能）で整えた開発環境・ドキュメント構成・
+背景: 姉妹プロジェクト（同一作者の Chrome 拡張機能）で整えた開発環境・ドキュメント構成・
 テスト・i18n の規律を、simpLoupe にも移す作業。**機能追加はしていない。**
 
 ## やったこと
@@ -31,7 +31,7 @@
 | | 判断 | 理由 |
 |---|---|---|
 | `architecture.md` | 作る | 「キャプチャを canvas で拡大する」という中核が、コードを読むだけでは追いにくい |
-| `permissions.md` | **作る（g-calize には無い）** | simpLoupe の「動かない」の大半が `activeTab` と URL 制限。g-calize の「Google カレンダーの DOM 依存」に相当する固有リスクで、ここだけは独立させる価値がある |
+| `permissions.md` | **作る（姉妹プロジェクトには無い）** | simpLoupe の「動かない」の大半が `activeTab` と URL 制限。姉妹プロジェクトの「特定サイトの DOM 依存」に相当する固有リスクで、ここだけは独立させる価値がある |
 | `testing.md` | 作る | 「何をテストしないか」を書き残すため。canvas と `<dialog>` は実機確認しかない |
 | `i18n.md` | **作った（当初は「作らない」判断だった）** | 下記 |
 | `firefox.md` | **作らない** | 対応予定が無い。`captureVisibleTab` の挙動差と `<dialog>` の top layer 依存があり、調査なしに手順を書けない。判断の理由だけ [architecture.md](../design/architecture.md#対象ブラウザ) の「対象ブラウザ」に残した |
@@ -72,7 +72,7 @@ $ git tag                     → v2.0.1 / v2.0.2         （2.0.0 のタグは�
 ### `README.md` は日本語にした
 
 現状は英語3行（ストアの説明文の抜粋）だった。両リポジトリとも作者は同一で、
-`CLAUDE.md` の規約が「日本語」なので g-calize の README と章立てごと揃えた
+`CLAUDE.md` の規約が「日本語」なので姉妹プロジェクトの README と章立てごと揃えた
 （概要 / 必要な環境 / 開発 / コマンド / ディレクトリ構成 / ドキュメント / ライセンス）。
 
 英語のストア向け文面は**開発者向け README の役割ではない**ので載せていない。
@@ -81,7 +81,7 @@ $ git tag                     → v2.0.1 / v2.0.2         （2.0.0 のタグは�
 
 ### `workflow.md` の「動作確認の観点」は環境軸で並べた
 
-g-calize は「ビューごと」（月表示 / 週表示 …）だったが、simpLoupe に画面の種類は無い。
+姉妹プロジェクトは「画面の種類ごと」に並べていたが、simpLoupe に画面の種類は無い。
 代わりに**壊れ方が環境依存**なので、次の4軸で並べた。
 
 1. 起動と終了（アイコン / メニュー / Esc / 設定パネル）
@@ -99,9 +99,9 @@ g-calize は「ビューごと」（月表示 / 週表示 …）だったが、s
 | vite | 5 → **8**（rolldown） | production ビルド・watch・terser minify すべて実測で成功。`lib` モード + iife の設定はそのまま通った |
 | TypeScript | 5 → **7** | `tsc --noEmit` は exit 0。破壊的変更は `tsconfig.json` の `baseUrl` 削除だけ |
 | `@types/chrome` | 0.0.243 → **0.2.5** | 破壊的変更は1件。`chrome.tabs.TabActiveInfo` → **`OnActivatedInfo`**（`service-worker.ts` を修正） |
-| `copyfiles` → `cpy-cli` / `npm-run-all` → `npm-run-all2` | 置き換え | g-calize と同じ構成に揃えた。`copy:locales` は 35ロケールでもそのまま動く |
+| `copyfiles` → `cpy-cli` / `npm-run-all` → `npm-run-all2` | 置き換え | 姉妹プロジェクトと同じ構成に揃えた。`copy:locales` は 35ロケールでもそのまま動く |
 | `terser` | **明示追加** | ビルドが**宣言されていない依存に乗っていた**。`html-minifier-next` の dependencies 経由で入っているだけで、vite からは optional peer。上流が外したらビルドが突然落ちる |
-| `oxlint` / `vitest` / `happy-dom` / `@vitest/*` | 追加 | バージョンは g-calize と完全に一致させた（同じ作者の2リポジトリで挙動が違うと調査が二重になる） |
+| `oxlint` / `vitest` / `happy-dom` / `@vitest/*` | 追加 | バージョンは姉妹プロジェクトと完全に一致させた（同じ作者の2リポジトリで挙動が違うと調査が二重になる） |
 
 `devEngines.runtime` に `node >= 24` / `onFail: "error"` を入れた。Node 24 が必須になった。
 これには**落とし穴がある**（→ つまずいたこと）。
@@ -113,9 +113,9 @@ g-calize は「ビューごと」（月表示 / 週表示 …）だったが、s
 
 Vitest + happy-dom。`tests/` に8ファイル。
 
-### element.ts を coverage 対象にした（g-calize と逆）
+### element.ts を coverage 対象にした（姉妹プロジェクトと逆）
 
-g-calize は Lit コンポーネント（設定ダイアログ）を coverage 対象外にしている。
+姉妹プロジェクトは Lit コンポーネント（設定ダイアログ）を coverage 対象外にしている。
 あちらの Lit は約4600行のうちの周辺機能で、Shadow DOM とアニメーションの再現コストに
 見合わないという判断だった。**simpLoupe は Lit が本体**なので、外すと守れる範囲がほとんど残らない。
 happy-dom 上で実際に `<ext-simploupe>` をマウントしてテストしている。
@@ -181,12 +181,12 @@ simpLoupe の `default_locale` は `ja` なので、**未訳の言語では UI �
 UI 側（A）は逆で、**訳が無い言語の JSON は置かない**。実行時に `en` へフォールバックするので、
 置かないほうが「未訳」が可視化されて安全。
 
-ロケール一覧は g-calize の37から `en_GB` / `en_US` を落として**35**にした。
+ロケール一覧は姉妹プロジェクトの37から `en_GB` / `en_US` を落として**35**にした。
 Chrome は `en_GB` → `en` と親にフォールバックするので、`en` があればカバー範囲は同じ。
 
-### キーを意味的な ID にした（g-calize からの意図的な逸脱）
+### キーを意味的な ID にした（姉妹プロジェクトからの意図的な逸脱）
 
-g-calize は英語の原文をキーにしている（`"Holiday color"` など）。原文を直すと全言語が黙って壊れる。
+姉妹プロジェクトは英語の原文をキーにしている（表示ラベルそのままの文字列）。原文を直すと全言語が黙って壊れる。
 simpLoupe は**これから作る9キー**なので移行コストがゼロで、最初から `label.zoom` / `shape.round` の
 ような意味 ID にした。
 

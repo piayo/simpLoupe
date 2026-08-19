@@ -24,7 +24,11 @@ Chrome ウェブストア: <https://chromewebstore.google.com/detail/anbodbalmoh
 ```sh
 nvm use
 npm ci
+cp .env.example .env   # 任意。中身は空のままで構わない
 ```
+
+`.env` は開発用の逃げ道（拡張機能 ID の固定と、production ビルドに `console.*` を残す設定）で、
+**無くてもビルドは通ります。** 詳細は [.env.example](.env.example) のコメント。
 
 ## 開発
 
@@ -43,6 +47,7 @@ npm run dev
 
 | コマンド | 内容 |
 |---|---|
+| `npm run verify` | lint → fmt:check → typecheck → test → i18n:check を通しで実行 |
 | `npm run dev` | 監視ビルド（development） |
 | `npm run build` | `dist/` へのビルド（production） |
 | `npm test` | テスト実行（Vitest） |
@@ -50,11 +55,14 @@ npm run dev
 | `npm run test:ui` | ブラウザでテスト結果とカバレッジを見る |
 | `npm run test:coverage` | カバレッジ計測 |
 | `npm run lint` | oxlint |
+| `npm run fmt` / `fmt:check` | oxfmt で整形 / 整形されているか確認 |
 | `npm run typecheck` | `tsc --noEmit` |
+| `npm run check` | 成果物 (`dist/`) の検査 |
 | `npm run i18n:build` | `src/i18n/store/` から `src/_locales/` を生成 |
 | `npm run i18n:verify` | 生成物が単一ソースとずれていないか確認 |
 | `npm run i18n:check` | i18n データの検査（CI で実行） |
-| `npm run zip` | `dist/` を `zip/${version}.zip` に固める |
+| `npm run zip` | verify → build → check を通してから `zip/${version}.zip` に固める |
+| `npm run build:test` / `zip:test` | 拡張機能 ID を固定した検証用ビルド（`.env` の `SIMPLOUPE_KEY` が要る） |
 
 ## ディレクトリ構成
 
@@ -76,7 +84,10 @@ src/
     ext-simploupe/      ルーペ本体（Lit の Web Component）
       element.ts        表示・キャプチャ描画・設定パネル
       styles.ts         Shadow DOM 内の CSS（スキン・形状）
-scripts/i18n/       i18n の生成と検査
+scripts/
+  i18n/             i18n の生成と検査
+  check-dist.mjs    成果物 (dist/) の検査
+  with-key.mjs      拡張機能 ID を固定して npm script を走らせる
 tests/              テスト
 docs/               設計・作業手順・作業記録 → docs/README.md
 work/               Chrome ウェブストアの掲載素材（スクリーンショット、掲載文）

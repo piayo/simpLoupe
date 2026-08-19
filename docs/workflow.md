@@ -5,6 +5,7 @@
 ```sh
 nvm use          # .nvmrc = v24.19.0
 npm ci
+cp .env.example .env   # 任意
 ```
 
 `package.json` の `devEngines` は `onFail: "error"` です。**Node 24 未満のシェルでは
@@ -13,6 +14,35 @@ npm ci
 `.npmrc` に `min-release-age=7` を設定しています。公開から7日未満のバージョンをインストールしない設定で、
 npm のサプライチェーン攻撃対策です。出たばかりのパッケージを入れたいときは一時的に外す必要があります。
 
+### `.env` は無くても動く
+
+[.env.example](../.env.example) をコピーするだけで、**中身は両方とも空で構いません。**
+必要になるのは次の2つの場面だけです。
+
+| 変数 | いつ要るか |
+|---|---|
+| `SIMPLOUPE_KEY` | 既存ユーザーの保存値でマイグレーションを試すとき。拡張機能 ID を公開版と同じに固定する |
+| `SIMPLOUPE_KEEP_CONSOLE` | minify 済みの production ビルドのまま `console.*` を追いたいとき |
+
+どちらも**明示的に `npm run build:test` / `npm run zip:test` を呼んだときだけ**効きます。
+`npm run build` / `npm run zip` は `.env` の状態に関わらず鍵無し・console 無しになり、
+混入していれば `npm run check` が止めます。
+
+`SIMPLOUPE_KEY` を使うときは、**ストア版の simpLoupe を先に無効化してください。**
+ID が衝突して読み込めません。値の取り方は [.env.example](../.env.example) に書いてあります。
+
+### 整形は oxfmt に任せる
+
+```sh
+npm run fmt         # 直す
+npm run fmt:check   # 検査だけ（CI が回している）
+```
+
+バージョンは `0.62.0` に厳密固定です。整形結果はパッチバージョンでも変わることがあり、
+上がると無関係な差分で CI が落ちます。設定 ([.oxfmtrc.json](../.oxfmtrc.json)) の
+`printWidth` と `quoteProps` は**検査スクリプトを壊さないための値**なので変えないでください
+（理由はファイル内の `_readme` と [CLAUDE.md](../CLAUDE.md)）。
+
 ## 開発
 
 ```sh
@@ -20,7 +50,9 @@ npm run dev
 ```
 
 `dist/` に development ビルド（未圧縮・`console.log` 残し）を出力し、`src/**/*.ts` を監視して自動で再ビルドします。
-production ビルド（`npm run build`）では terser が `console.*` を除去します。
+production ビルド（`npm run build`）では terser が `console.*` を除去します
+（`.env` の `SIMPLOUPE_KEEP_CONSOLE=1` で残せますが、`npm run check` が止めるので
+そのまま提出することはできません）。
 
 ### Chrome に読み込む
 
@@ -118,11 +150,31 @@ service worker は数十秒アイドルすると停止します。**停止して
 ## 検証
 
 ```sh
-npm run lint       # oxlint。エラー 0 を維持する
-npm run typecheck  # tsc --noEmit
-npm run i18n:check # i18n データの検査（生成物のずれも見る）
-npm test           # Vitest
+npm run verify     # 下の4つを通しで実行する
 ```
+
+| | 内容 |
+|---|---|
+| `npm run lint` | oxlint。エラー 0 を維持する |
+| `npm run fmt:check` | 整形されているか（直すのは `npm run fmt`） |
+| `npm run typecheck` | `tsc --noEmit` |
+| `npm test` | Vitest |
+| `npm run i18n:check` | i18n データの検査（生成物のずれも見る） |
+
+**ソースではなく成果物を見る検査が別にあります。**
+
+```sh
+npm run build
+npm run check      # dist/ を検査する
+```
+
+`check` が塞いでいるのは、**lint も test も通るのに提出物だけが壊れる**経路です。
+
+- `.env` の戻し忘れ（`key` の混入、`console.*` の残り）
+- `format: "iife"` なのに `exports` を参照するコードが出る。ビルドは成功するのに
+  **読み込み時に落ちて拡張機能の登録そのものが失敗する**
+- 著作権表示 (banner) の消失。これは法的に要求されている表示です
+- `dist/_locales` やアイコンの取りこぼし（`copy:*` が失敗してもビルドは成功する）
 
 CI ([.github/workflows/ci.yml](../.github/workflows/ci.yml)) が**全ブランチの push と PR** で同じことを実行し、
 `zip` まで作って artifact に保存します。作業ブランチを push した時点で結果が出るので、
@@ -159,9 +211,14 @@ npm run i18n:check
 ### 3. ビルドして固める
 
 ```sh
-npm run build
 npm run zip        # -> zip/2.0.3.zip
 ```
+
+`zip` は **verify → build → check → 固める** の順で走ります。途中で落ちたら zip は作られないので、
+「検証を忘れたまま提出用の zip を作る」ことができません。個別に走らせる必要はありません。
+
+`.env` に `SIMPLOUPE_KEY` や `SIMPLOUPE_KEEP_CONSOLE` が残っていても、`npm run zip` の成果物には
+入りません（差し込むのは `build:test` / `zip:test` だけ）。万一入っていれば `check` が exit 1 で止めます。
 
 `zip/` は gitignore 済みです。生成物をコミットしないでください。
 

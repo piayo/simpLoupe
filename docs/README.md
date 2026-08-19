@@ -23,4 +23,4 @@
 | | なぜ無いか |
 |---|---|
 | `design/firefox.md` | Firefox 対応の予定が無い。判断の理由は [architecture.md](design/architecture.md#対象ブラウザ) |
-| ストア掲載文の多言語管理（g-calize の `work/store/` + `store:check`） | simpLoupe には日本語のマスター文面がまだ無い（[../work/store_description.md](../work/store_description.md) は断片）。文面を書くのが先。→ [known-issues.md](known-issues.md) |
+| ストア掲載文の多言語管理（姉妹プロジェクトの `work/store/` + `store:check`） | simpLoupe には日本語のマスター文面がまだ無い（[../work/store_description.md](../work/store_description.md) は断片）。文面を書くのが先。→ [known-issues.md](known-issues.md) |

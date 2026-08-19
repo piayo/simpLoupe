@@ -256,6 +256,11 @@ npm run build
 grep -o 'Copyright ([Cc]) [0-9]* [A-Za-z .]*' dist/js/content-script.js | sort -u
 ```
 
+表示が消えていないことは `npm run check`（[scripts/check-dist.mjs](../../scripts/check-dist.mjs)）も
+見ています。**両方の JS の先頭に `@license` の banner があること**と、
+`content-script.js` に `BSD-3-Clause` の再掲があることを確認し、無ければ exit 1 で止めます。
+vite.config.ts の banner を触ったときに黙って消えるのを防ぐためです。
+
 ## 対象ブラウザ
 
 **Chrome (Manifest V3) 専用です。** Firefox 対応は検討していません。理由:
@@ -265,7 +270,7 @@ grep -o 'Copyright ([Cc]) [0-9]* [A-Za-z .]*' dist/js/content-script.js | sort -
 2. `<dialog>` の top layer と `@starting-style` に依存した見た目の作り直しが要る
 3. MV3 の background が service worker ではなく `scripts` になるなど manifest の差分がある
 
-姉妹プロジェクトの g-calize は Firefox 対応（`manifest.config.ts` / `web-ext` / `firefox:*`）を
+姉妹プロジェクトは Firefox 対応（`manifest.config.ts` / `web-ext` / `firefox:*`）を
 入れていますが、あちらは CSS を注入するだけで**キャプチャに依存していません**。
 simpLoupe では「動くか調べる」だけで済む規模ではないため、単なる設定追加ではなく**機能追加**として扱います。
 必要になった時点で `docs/plan/` にプランを立ててから着手してください。

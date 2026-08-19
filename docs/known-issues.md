@@ -132,7 +132,7 @@ this.off(false);      // mousemove / scroll / resize のリスナーを全部外
 
 ---
 
-## 8. `view-transition-name` が g-calize からのコピー残り
+## 8. `view-transition-name` が別プロジェクトからのコピー残り
 
 **場所** [src/ts/ext-simploupe/styles.ts](../src/ts/ext-simploupe/styles.ts)
 **影響** 小
@@ -143,7 +143,7 @@ view-transition-name: "gcz-setting";
 
 - 値がクォートされています。`view-transition-name` は `<custom-ident>` を取るため、
   **文字列リテラルは不正で無視されます**
-- 名前の `gcz-` は G-calize の接頭辞です。simpLoupe には無関係
+- 名前の `gcz-` は別プロジェクト由来の接頭辞です。simpLoupe には無関係
 
 `element.ts` の `startViewTransition()` / `performUpdate()` の View Transition 周りも、
 **現状はどこからも `startViewTransition()` が呼ばれていません**（`_viewTransition` は常に undefined）。
@@ -296,7 +296,7 @@ DOM 版（`number`）に解決されて `any` を外せますが、**`tests/mani
 **影響** 小（リポジトリの外＝ストアの掲載情報は別途手で入れてある）
 
 日本語のマスター文面が4行の断片しかありません（旧 `work/memo.md` の使い方メモを移したもの）。
-そのため g-calize の `work/store/<locale>.md` + `npm run store:check`（35言語版とマスターの
+そのため姉妹プロジェクトの `work/store/<locale>.md` + `npm run store:check`（35言語版とマスターの
 追随を検査する仕組み）を simpLoupe には入れていません。**追随させる元が無いためです。**
 → [README.md](README.md) の「無いもの」
 

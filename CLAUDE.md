@@ -36,7 +36,7 @@
 Chrome ウェブストアで公開中: <https://chromewebstore.google.com/detail/anbodbalmohikmogemapjmdodlgkegmg>
 
 **小さい拡張です。** `src/ts/` は 1,000 行未満しかありません。着手前に全部読めます。
-g-calize（同じ作者の別拡張）と規約・開発環境・ドキュメント体系を揃えていますが、規模が違うので
+姉妹プロジェクト（同じ作者の別拡張）と規約・開発環境・ドキュメント体系を揃えていますが、規模が違うので
 仕組みは意図的に簡素にしてあります（Firefox 対応を持たない、design ドキュメントが3本、など）。
 
 ## 前提: Node 24 が必須
@@ -61,18 +61,45 @@ nvm use            # .nvmrc (v24.19.0) を読む
 
 | コマンド | 内容 |
 |---|---|
+| `npm run verify` | **lint → fmt:check → typecheck → test → i18n:check を通しで実行。まずこれ** |
 | `npm run dev` | clean → 静的ファイル copy → vite の watch ビルド (development) |
-| `npm run build` | clean → version 同期 → tsc + vite → 静的ファイル copy |
+| `npm run build` | clean → version 同期 → 静的ファイル copy → tsc + vite |
 | `npm run lint` | oxlint。**エラー 0 を維持すること** |
+| `npm run fmt` | oxfmt で整形。`npm run fmt:check` は検査だけ |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm test` | テスト（Vitest + happy-dom） |
 | `npm run test:ui` | ブラウザでテスト結果を見る。**対話的なので CI や自動実行では使わない** |
-| `npm run zip` | `dist/` を `zip/${version}.zip` に固める（要 `npm run build`） |
+| `npm run check` | **成果物 (`dist/`) の検査。** key / console の残り、iife の壊れ、著作権表示 |
+| `npm run zip` | verify → build → check → 固める。**リリースはこれ1本** |
+| `npm run build:test` / `zip:test` | 拡張機能 ID を固定した検証用ビルド（`.env` の `SIMPLOUPE_KEY` が要る） |
 | `npm run i18n:build` | `src/i18n/store/` から `src/_locales/` を生成 |
 | `npm run i18n:check` | i18n データの検査。**CI で回している** |
 
-**変更したら必ず `npm run lint` / `npm run typecheck` / `npm test` を通すこと。**
-CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) が同じことを実行します。
+**変更したら必ず `npm run verify` を通すこと。**
+CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) が同じことに `check` を足して実行します。
+
+### `npm run zip` は検査を通さないと固めない
+
+`zip` は `verify` → `build` → `check` → `zip:pack` の順です。**途中で落ちたら zip は作られません。**
+検査を飛ばしたいときだけ `npm run zip:pack` を直接呼びます（CI はステップを個別に見せるため
+そうしています）。
+
+`check` が見ているのは**ソースではなく出来上がった `dist/`** です。lint も test も通るのに
+提出物だけが壊れる経路（`.env` の戻し忘れ、iife への `exports` 混入、banner の消失）を塞ぐためで、
+実際にどれも踏める形になっています。詳細は [scripts/check-dist.mjs](scripts/check-dist.mjs) の冒頭。
+
+### `.env` は開発用の逃げ道（無くても動く）
+
+[.env.example](.env.example) をコピーして作ります。**両方とも空で構いません。**
+
+| 変数 | 効果 |
+|---|---|
+| `SIMPLOUPE_KEY` | `build:test` / `zip:test` のときだけ `dist/manifest.json` に `key` を差し込み、拡張機能 ID を公開版と同じにする。**既存ユーザーの保存値でマイグレーションを試すため** |
+| `SIMPLOUPE_KEEP_CONSOLE` | `1` にすると production ビルドでも `console.*` を残す（調査用） |
+
+**`npm run build` / `npm run zip` は `.env` の状態に関わらず鍵無し・console 無しになります。**
+既定を安全側に倒してあり、鍵と console を入れるには `build:test` / `zip:test` を明示的に呼ぶ必要が
+あります。それでも混入したら `npm run check` が exit 1 で止めます（実測済み）。
 
 ## 直接編集してはいけない生成物
 
@@ -114,7 +141,12 @@ src/
       styles.ts          Shadow DOM 内の CSS。スキン3種はここで完結している
       index.ts           re-export のみ
 syncVersion.js           package.json の version を manifest.json へ同期
-scripts/i18n/            i18n の生成と検査 (build-store / check-store / check-ui)
+scripts/
+  i18n/                  i18n の生成と検査 (build-store / check-store / check-ui)
+  check-dist.mjs         成果物 (dist/) の検査。npm run check の実体
+  with-key.mjs           SIMPLOUPE_INJECT_KEY を立てて npm script を呼ぶだけの薄い包み
+.env.example             開発用の環境変数の雛形 (.env は gitignore)
+.oxfmtrc.json            整形設定。printWidth と quoteProps は検査スクリプトの都合で固定
 tests/                   Vitest
 docs/                    設計・プラン・作業記録 → docs/README.md
 work/                    Chrome ウェブストアの掲載素材（スクリーンショット、掲載文）
@@ -205,9 +237,13 @@ View Transition、スキンの CSS は**実際に Chrome に読み込まない�
 
 ### `console.log` は production ビルドで消える
 
-`vite.config.ts` の terser 設定で `drop_console: true` にしているため、
+`vite.config.ts` の terser 設定で `drop_console` を有効にしているため、
 `npm run build`（production）では `console.log` が落ちます。development ビルドでは残ります。
 既存のデバッグ出力は**わざわざ消さないでください**（実機確認の手がかりになっています）。
+
+minify 済みの成果物のまま調べたいときだけ、`.env` の `SIMPLOUPE_KEEP_CONSOLE=1` で残せます。
+**戻し忘れても `npm run check` が止めます**（`npm run zip` は `check` を通るので、
+console 入りの zip は作られません）。
 
 ### 配布物の著作権表示を消さない
 
@@ -221,14 +257,19 @@ View Transition、スキンの CSS は**実際に Chrome に読み込まない�
 
 ### 既存のコードスタイルに合わせる
 
-**フォーマッタは意図的に入れていません。** 行数が少ないので整形は簡単ですが、
-このリポジトリのスタイルには**フォーマッタが必ず壊すもの**が含まれており、
-一括整形すると差分が読めなくなるうえ姉妹プロジェクト (g-calize) とも揃わなくなります。
-周囲のコードに合わせてください。
+**整形は oxfmt に任せています。** 手で整えないでください。設定は [.oxfmtrc.json](.oxfmtrc.json)。
 
-- インデントは**スペース4**
-- 括弧の内側にスペース: `function qs( query: string )`, `if ( !this.open ) {`
-- **オブジェクトリテラルの値を縦に揃える**: `size:   2,` / `skin   : "1",`（フォーマッタが潰す）
+```sh
+npm run fmt         # 直す
+npm run fmt:check   # 検査だけ（CI が回している）
+```
+
+バージョンは `0.62.0` に**厳密固定**しています（`^` を付けない）。整形結果はパッチバージョンでも
+変わることがあり、上がった瞬間に無関係な差分が出て CI の `fmt:check` が落ちるためです。
+上げるときは意図的に上げ、`npm run fmt` の差分ごとコミットしてください。
+
+整形されない部分の慣習:
+
 - 短絡実行を文として使う: `tab && chrome.tabs.sendMessage(...)`, `onload && (...)`
 - 内部変数・内部プロパティは `_` 始まり: `_timer`, `_prevData`, `_mousemoveHandler`
 - 文字列は基本ダブルクォート
@@ -237,7 +278,19 @@ View Transition、スキンの CSS は**実際に Chrome に読み込まない�
 - コメントは日本語
 
 [.oxlintrc.json](.oxlintrc.json) はこれらを許可するよう設定してあります。
-**規約に合わせるためだけの一括整形はしないでください。**
+
+#### 既定値を変えてはいけない設定が2つある
+
+`.oxfmtrc.json` の次の2つは**このリポジトリの検査スクリプトを壊さないため**にあります。理由は
+ファイル内の `_readme` にも書いてありますが、要点だけ:
+
+| | 値 | 外すと何が起きるか |
+|---|---|---|
+| `printWidth` | 200 | `T( "..." )` が折り返され、[check-ui.mjs](scripts/i18n/check-ui.mjs) の走査（ソースをテキストとして読む）に当たらず、翻訳キーが「未使用」と誤判定される |
+| `quoteProps` | `preserve` | [i18n.ts](src/ts/i18n.ts) の `transData` から `"ja":` の引用符が外れ、`tableLangs()` が言語コードを拾えず対応表が空になる |
+
+`ignorePatterns` の `src/_locales/**` と `work/**` も外さないでください。前者は
+`i18n:check:store` が単一ソースと突き合わせるため、後者はストアへそのまま貼り付けるテキストのためです。
 
 ### JSDoc の書き方
 
