@@ -1,4 +1,6 @@
 import { defineConfig } from "vitest/config";
+import { loadEnv, type Plugin } from "vite";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { minifyTemplateLiterals } from "rollup-plugin-minify-template-literals";
 
 // ▼ 配布物の著作権表示
@@ -74,12 +76,55 @@ const BANNER_THIRD_PARTY = `/**
 
 // service-worker.js は lit を含まないので、サードパーティの表示は入れない
 // （含んでいないものの表示を貼ると、かえって何が入っているか分からなくなる）
-function banner( chunk: { modules?: Record<string, unknown> } ): string {
-    const hasThirdParty = Object.keys( chunk.modules ?? {})
-        .some( id => id.includes( "node_modules" ) );
-    return hasThirdParty
-        ? `${BANNER_SELF}\n${BANNER_THIRD_PARTY}`
-        : BANNER_SELF;
+function banner(chunk: { modules?: Record<string, unknown> }): string {
+    const hasThirdParty = Object.keys(chunk.modules ?? {}).some((id) => id.includes("node_modules"));
+    return hasThirdParty ? `${BANNER_SELF}\n${BANNER_THIRD_PARTY}` : BANNER_SELF;
+}
+
+/**
+ * `.env` の `SIMPLOUPE_KEY` を `dist/manifest.json` の `key` に差し込む。
+ *
+ * **拡張機能 ID を固定するため。**「パッケージ化されていない拡張機能を読み込む」では
+ * ID が読み込み元のパスから作られるので**マシンごと・置き場所ごとに変わる**。
+ * `chrome.storage.local` の保存領域は ID ごとに区切られているため、ID が違うと
+ * **設定を1つも持っていない別の拡張機能**として起動する。公開版と同じ ID にすると、
+ * 公開版が書いた保存値をそのまま読めるので、**マイグレーションの実機確認ができる。**
+ *
+ * ## 差し込むのは `npm run build:test` / `zip:test` のときだけ
+ *
+ * `.env` に鍵があっても、それだけでは差し込まない。`scripts/with-key.mjs` が
+ * 立てる `SIMPLOUPE_INJECT_KEY` が要る。
+ *
+ * **既定を安全側に倒すため。**「あれば差し込む」にすると、外し忘れた鍵入りの
+ * 成果物をそのままストアへ提出してしまう。`npm run build` / `npm run zip` は
+ * `.env` の状態に関わらず**必ず鍵無し**になる。
+ *
+ * ⚠️ `dist/manifest.json` は `copy:manifest` が `src/manifest.json` からコピーする。
+ * **このプラグインはその後に走る必要がある**ので、package.json の `build` は
+ * `copy:*` を `build:js` より先に並べてある。順序を戻すと差し込みが消える。
+ *
+ * ⚠️ 書き戻しは syncVersion.js と同じくインデント2スペース。manifest.json の整形を保つ。
+ */
+function injectExtensionKey(key: string): Plugin {
+    const path = "dist/manifest.json";
+    return {
+        name: "simploupe-inject-extension-key",
+        apply: "build",
+        closeBundle() {
+            if (!key) {
+                return;
+            }
+            if (!existsSync(path)) {
+                this.warn(` が無いので key を差し込めない（copy:manifest より先に走っている）`);
+                return;
+            }
+            const manifest = JSON.parse(readFileSync(path, "utf8"));
+            manifest.key = key;
+            writeFileSync(path, JSON.stringify(manifest, null, 2) + "\n");
+            console.log("\n⚠️  SIMPLOUPE_KEY を manifest に差し込んだ（拡張機能 ID が公開版と同じになる）");
+            console.log("   ストアへ提出する zip には含めないこと\n");
+        },
+    };
 }
 
 // vitest の設定もこのファイルに置いている（`vitest.config.ts` は作らない）。
@@ -89,6 +134,8 @@ function banner( chunk: { modules?: Record<string, unknown> } ): string {
 // 配布物では minify-literals が空白を削って `--cursor:none` になっていた。
 export default defineConfig(({ mode }) => {
     const isProd = mode === "production";
+    // 第3引数を "" にすると VITE_ 接頭辞なしの変数も読める
+    const env = loadEnv(mode, process.cwd(), "");
     console.log("...mode:", mode);
     return {
         root: "./",
@@ -103,15 +150,17 @@ export default defineConfig(({ mode }) => {
             minify: isProd ? "terser" : false,
             terserOptions: {
                 compress: {
-                    drop_console: true,
+                    // ⚠️ 調査用。SIMPLOUPE_KEEP_CONSOLE=1 のときだけ console を残す。
+                    //    リリースのビルドでは必ず落とすこと（既定は落とす。npm run check が検出する）
+                    drop_console: !env["SIMPLOUPE_KEEP_CONSOLE"],
                 },
             },
             lib: {
                 name: "simploupe",
                 fileName: (format, entryName) => `${entryName}.js`,
                 entry: {
-                    "js/content-script"  : "src/ts/content-script.ts",
-                    "js/service-worker"  : "src/ts/service-worker.ts",
+                    "js/content-script": "src/ts/content-script.ts",
+                    "js/service-worker": "src/ts/service-worker.ts",
                 },
             },
             rollupOptions: {
@@ -121,17 +170,15 @@ export default defineConfig(({ mode }) => {
                 },
             },
             // ファイルの変更を監視
-            watch: isProd ? null : {
-                include: [
-                    "src/**/*.ts",
-                ],
-            },
+            watch: isProd
+                ? null
+                : {
+                      include: ["src/**/*.ts"],
+                  },
         },
-        optimizeDeps: {
-        },
+        optimizeDeps: {},
         resolve: {
-            alias: [
-            ],
+            alias: [],
         },
         plugins: [
             // html`...` / css`...` の中身を圧縮する。
@@ -153,10 +200,13 @@ export default defineConfig(({ mode }) => {
             // `style="--cursor: ${cursor}"` が `--cursor:none` に縮んで属性値の検証が落ちる。
             {
                 ...minifyTemplateLiterals({
-                    exclude: [ "**/node_modules/**" ],
+                    exclude: ["**/node_modules/**"],
                 }),
                 apply: "build",
             } as any,
+
+            // 拡張機能 ID を固定する。build:test / zip:test のときだけ効く
+            injectExtensionKey(env["SIMPLOUPE_INJECT_KEY"] ? (env["SIMPLOUPE_KEY"] ?? "") : ""),
         ],
         test: {
             // 任意のページ上に置かれる Web Component とルーペの DOM を組み立てるため
@@ -166,9 +216,9 @@ export default defineConfig(({ mode }) => {
                 provider: "v8",
                 include: ["src/ts/**/*.ts"],
                 exclude: [
-                    "src/ts/types.ts",                  // 型定義のみ。実行コードが無い
-                    "src/ts/ext-simploupe/index.ts",    // re-export のみ
-                    "src/ts/ext-simploupe/styles.ts",   // css`` の文字列のみ
+                    "src/ts/types.ts", // 型定義のみ。実行コードが無い
+                    "src/ts/ext-simploupe/index.ts", // re-export のみ
+                    "src/ts/ext-simploupe/styles.ts", // css`` の文字列のみ
                 ],
             },
         },

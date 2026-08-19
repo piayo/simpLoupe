@@ -29,5 +29,8 @@ yarn-error.log*
 #enviroment
 /.env
 
+# 参考用に置いている別プロジェクトのファイルなど。git には含めない
+/temp
+
 # Claude Code のマシン固有設定（auto-memory の保存先、node のパス等）
 .claude/settings.local.json

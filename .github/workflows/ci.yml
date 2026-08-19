@@ -35,6 +35,10 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      # 整形されていない差分を弾く。手元では npm run fmt で直す
+      - name: Format check
+        run: npm run fmt:check
+
       - name: Typecheck
         run: npm run typecheck
 
@@ -48,8 +52,14 @@ jobs:
       - name: Build
         run: npm run build
 
+      # 成果物そのものの検査 (key / console の残り / iife の壊れ / 著作権表示)
+      - name: Check dist
+        run: npm run check
+
+      # npm run zip は verify から build まで通しで走らせるので、
+      # CI では個別のステップとして見せるために zip:pack だけを呼ぶ
       - name: Zip
-        run: npm run zip
+        run: npm run zip:pack
 
       # 生成物をダウンロードして動作確認できるようにする
       - name: Upload artifact

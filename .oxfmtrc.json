@@ -1,0 +1,33 @@
+{
+    "_readme": [
+        "コードの整形設定。既定値のままだと、このリポジトリの検査スクリプトが壊れる。",
+        "",
+        "printWidth 200  … T( \"...\" ) の折り返しを防ぐ。折り返されると",
+        "                  scripts/i18n/check-ui.mjs の走査 (ソースをテキストとして",
+        "                  読む) に当たらず、翻訳キーが「未使用」と誤判定される。",
+        "quoteProps      … src/ts/i18n.ts の transData の \"ja\": のような引用符を保つ。",
+        "                  外れると check-ui.mjs の tableLangs() が言語コードを拾えず、",
+        "                  対応表が空とみなされる。",
+        "tabWidth 4      … 既存の慣習。",
+        "",
+        "ignorePatterns には生成物と、整形されると困るテキストを並べている。",
+        "src/_locales は i18n:check:store が単一ソースと突き合わせるため、触れると必ず落ちる。",
+        "work/ の掲載文はストアへそのまま貼り付けるので、整形してはいけない。"
+    ],
+    "printWidth": 200,
+    "tabWidth": 4,
+    "quoteProps": "preserve",
+    "bracketSpacing": true,
+    "ignorePatterns": [
+        "src/_locales/**",
+        "src/i18n/**",
+        "work/**",
+        "docs/**",
+        "dist/**",
+        "zip/**",
+        "temp/**",
+        "*.md",
+        "*.json",
+        ".github/**"
+    ]
+}
