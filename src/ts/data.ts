@@ -16,9 +16,9 @@ import { Config } from "./types";
  * **変えるときは両方直すこと** → docs/known-issues.md
  */
 export const defaultConfig: Config = {
-    size:   2,
-    zoom:   2,
-    shape:  "round",
+    size: 2,
+    zoom: 2,
+    shape: "round",
     cursor: "crosshair",
-    skin:   "1",
-}
+    skin: "1",
+};

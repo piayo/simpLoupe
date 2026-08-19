@@ -30,21 +30,21 @@ import { styles } from "./styles";
 /** カスタム要素名。content script が createElement に使う */
 export const TAGNAME = "ext-simploupe";
 
-@customElement( TAGNAME )
+@customElement(TAGNAME)
 export class ExtSimpLoupeElement extends LitElement {
-    static override styles = [ styles ];
+    static override styles = [styles];
 
     /** 表示中か。`reflect` しているので CSS 側は `:host([open])` で拾える */
     @property({ type: Boolean, reflect: true })
     open = false;
 
-    @query( ".dialog" )
+    @query(".dialog")
     dialog!: HTMLDialogElement;
 
-    @query( ".canvas" )
+    @query(".canvas")
     canvas!: HTMLCanvasElement;
 
-    @query( ".loupe" )
+    @query(".loupe")
     loupe!: HTMLDivElement;
 
     /** 設定パネルを開いているか。開いている間はマウス追従を止める */
@@ -63,11 +63,11 @@ export class ExtSimpLoupeElement extends LitElement {
      */
     @state()
     config: Config = {
-        skin   : "2",
-        shape  : "round",
-        cursor : "crosshair",
-        size   : 2,
-        zoom   : 2,
+        skin: "2",
+        shape: "round",
+        cursor: "crosshair",
+        size: 2,
+        zoom: 2,
     };
 
     /**
@@ -82,14 +82,14 @@ export class ExtSimpLoupeElement extends LitElement {
         pixelRatio: window.devicePixelRatio,
         x: 0,
         y: 0,
-        width : 160 + (80 * this.config.size),
-        height: 160 + (80 * this.config.size),
+        width: 160 + 80 * this.config.size,
+        height: 160 + 80 * this.config.size,
         loaded: false,
-        captureImage: document.createElement('img'),
+        captureImage: document.createElement("img"),
     };
 
     /** View Transition を1回だけ使うためのフラグ兼ハンドル */
-    private _viewTransition?: ViewTransition|boolean;
+    private _viewTransition?: ViewTransition | boolean;
 
     /**
      * View Transition を挟んで再描画する。
@@ -97,10 +97,10 @@ export class ExtSimpLoupeElement extends LitElement {
      * 非対応ブラウザでは素の performUpdate に落ちる。
      */
     override async performUpdate(): Promise<void> {
-        if ( !document.startViewTransition|| !this._viewTransition ) {
+        if (!document.startViewTransition || !this._viewTransition) {
             return super.performUpdate();
         }
-        this._viewTransition = document.startViewTransition( async () => await super.performUpdate() );
+        this._viewTransition = document.startViewTransition(async () => await super.performUpdate());
         await this._viewTransition.updateCallbackDone;
         this._viewTransition = false;
     }
@@ -114,20 +114,20 @@ export class ExtSimpLoupeElement extends LitElement {
     /** キャプチャ撮り直しの遅延用 */
     timer: any = null;
     /** スクロール中はルーペを隠し、止まってから撮り直す */
-    _onscrollHandler  = (() => {
+    _onscrollHandler = () => {
         clearTimeout(this.timer);
         this.view.loaded = false;
         this.requestUpdate();
-        this.timer = setTimeout( () => this.updateCapture(), 100 );
-    });
+        this.timer = setTimeout(() => this.updateCapture(), 100);
+    };
 
     /** リサイズも同じ扱い（変数名の `resizel` は typo だが内部名なので影響なし） */
-    _onresizelHandler = (() => {
+    _onresizelHandler = () => {
         clearTimeout(this.timer);
         this.view.loaded = false;
         this.requestUpdate();
-        this.timer = setTimeout( () => this.updateCapture(), 100 );
-    });
+        this.timer = setTimeout(() => this.updateCapture(), 100);
+    };
 
     /**
      * マウス追従。位置を更新して切り出し直す。
@@ -137,10 +137,10 @@ export class ExtSimpLoupeElement extends LitElement {
      * その場合 `event.x` は undefined になり、`updatePosition()` 側の
      * `x ?? view.x` で前回位置が使われる。**この前提を壊さないこと。**
      */
-    _mousemoveHandler = (( event: MouseEvent ) => {
+    _mousemoveHandler = (event: MouseEvent) => {
         this.updatePosition({ x: event.x, y: event.y });
         this.drawCapture();
-    });
+    };
 
     /**
      * 表示する。既に開いていれば false を返して何もしない。
@@ -149,7 +149,7 @@ export class ExtSimpLoupeElement extends LitElement {
     show(): boolean {
         super.requestUpdate();
         const { dialog } = this;
-        if ( this.open ) {
+        if (this.open) {
             return false;
         }
         this.view.loaded = false;
@@ -159,9 +159,7 @@ export class ExtSimpLoupeElement extends LitElement {
         this.updateCapture();
         dispatchEvent(this, "show");
 
-        delay( getCSSTransitionDuration(dialog) ).then( () =>
-            ( this.open === true ) && dispatchEvent(this, "shown" )
-        );
+        delay(getCSSTransitionDuration(dialog)).then(() => this.open === true && dispatchEvent(this, "shown"));
 
         return true;
     }
@@ -172,7 +170,7 @@ export class ExtSimpLoupeElement extends LitElement {
      */
     hide(): boolean {
         const { dialog } = this;
-        if ( !this.open ) {
+        if (!this.open) {
             return false;
         }
 
@@ -182,18 +180,14 @@ export class ExtSimpLoupeElement extends LitElement {
         this.off();
         dispatchEvent(this, "hide");
 
-        delay( getCSSTransitionDuration(dialog) ).then( () =>
-            ( this.open === false ) && dispatchEvent(this, "hidden" )
-        );
+        delay(getCSSTransitionDuration(dialog)).then(() => this.open === false && dispatchEvent(this, "hidden"));
 
         return true;
     }
 
     /** 開いていれば閉じ、閉じていれば開く。content script から呼ばれる入口 */
     toggle(): boolean {
-        return this.open
-            ? this.hide()
-            : this.show();
+        return this.open ? this.hide() : this.show();
     }
 
     /**
@@ -207,7 +201,7 @@ export class ExtSimpLoupeElement extends LitElement {
         this.view.captureImage.onload = () => {
             this.view.loaded = true;
             this.requestUpdate();
-            dispatchEvent( document, "mousemove" );
+            dispatchEvent(document, "mousemove");
         };
         document.addEventListener("mousemove", this._mousemoveHandler, false);
         window.addEventListener("resize", this._onresizelHandler, false);
@@ -219,8 +213,8 @@ export class ExtSimpLoupeElement extends LitElement {
      * @param onload false を渡すと `captureImage.onload` は残す
      *   （設定パネルを開いている間も撮り直しの結果は反映したいため）
      */
-    off( onload = true ): void {
-        onload && ( this.view.captureImage.onload = () => null);
+    off(onload = true): void {
+        onload && (this.view.captureImage.onload = () => null);
         document.removeEventListener("mousemove", this._mousemoveHandler, false);
         window.removeEventListener("resize", this._onresizelHandler, false);
         window.removeEventListener("scroll", this._onscrollHandler, false);
@@ -228,7 +222,7 @@ export class ExtSimpLoupeElement extends LitElement {
 
     /** キャプチャを撮り直してほしいと content script に頼む */
     updateCapture(): void {
-        dispatchEvent( this, "getCapture" );
+        dispatchEvent(this, "getCapture");
     }
 
     /**
@@ -239,16 +233,16 @@ export class ExtSimpLoupeElement extends LitElement {
     updatePosition({ x, y }: { x?: number; y?: number }): void {
         const { loupe, config, view } = this;
 
-        view.width  = 160 + (80 * config.size);
-        view.height = 160 + (80 * config.size);
-        loupe?.style.setProperty( "width",  `${view.width}px` );
-        loupe?.style.setProperty( "height", `${view.height}px` );
+        view.width = 160 + 80 * config.size;
+        view.height = 160 + 80 * config.size;
+        loupe?.style.setProperty("width", `${view.width}px`);
+        loupe?.style.setProperty("height", `${view.height}px`);
 
         view.x = x ?? view.x ?? 0;
         view.y = y ?? view.y ?? 0;
-        const left = view.x - (view.width  / 2);
-        const top  = view.y - (view.height / 2);
-        loupe?.style.setProperty( "transform", `translate3d(${left}px, ${top}px, 0px)`);
+        const left = view.x - view.width / 2;
+        const top = view.y - view.height / 2;
+        loupe?.style.setProperty("transform", `translate3d(${left}px, ${top}px, 0px)`);
     }
 
     /**
@@ -263,11 +257,11 @@ export class ExtSimpLoupeElement extends LitElement {
     drawCapture(): void {
         const {
             view: { pixelRatio: pr, width, height, x, y, captureImage },
-            config: { zoom }
+            config: { zoom },
         } = this;
         const contenxt = this.canvas?.getContext("2d");
 
-        if ( !this.view.loaded || !contenxt ) {
+        if (!this.view.loaded || !contenxt) {
             return;
         }
 
@@ -277,25 +271,19 @@ export class ExtSimpLoupeElement extends LitElement {
         ・トリミング画像を、Canvasの座標 (dx, dy) に、
         ・横幅 dw、縦幅 dh のサイズに伸縮して描画します。
         */
-        const
-            dx = 0,
+        const dx = 0,
             dy = 0,
             dw = width,
             dh = height;
 
-        const
-            sx = (x - ( width  / zoom / 2 ) ) * pr,
-            sy = (y - ( height / zoom / 2 ) ) * pr,
-            sw = width  / zoom * pr,
-            sh = height / zoom * pr;
+        const sx = (x - width / zoom / 2) * pr,
+            sy = (y - height / zoom / 2) * pr,
+            sw = (width / zoom) * pr,
+            sh = (height / zoom) * pr;
 
         contenxt.clearRect(0, 0, dw, dh);
         contenxt.save();
-        contenxt.drawImage(
-            captureImage,
-            sx, sy, sw, sh,
-            dx, dy, dw, dh
-        );
+        contenxt.drawImage(captureImage, sx, sy, sw, sh, dx, dy, dw, dh);
         contenxt.restore();
     }
 
@@ -304,7 +292,7 @@ export class ExtSimpLoupeElement extends LitElement {
      * （パネルを操作している最中にルーペが逃げないようにするため）。
      */
     toggleSetting(): void {
-        if ( this.showSetting ) {
+        if (this.showSetting) {
             this.showSetting = false;
             this.on();
             return;
@@ -319,13 +307,13 @@ export class ExtSimpLoupeElement extends LitElement {
      * Lit の更新が終わってからになるよう queueMicrotask で後回しにする。
      */
     commit(): void {
-        this.view.width  = 160 + (80 * this.config.size);
-        this.view.height = 160 + (80 * this.config.size);
+        this.view.width = 160 + 80 * this.config.size;
+        this.view.height = 160 + 80 * this.config.size;
         this.requestUpdate();
 
         dispatchEvent(this, "save");
         this.updatePosition({});
-        queueMicrotask( () => this.drawCapture());
+        queueMicrotask(() => this.drawCapture());
     }
 
     /**
@@ -337,16 +325,13 @@ export class ExtSimpLoupeElement extends LitElement {
      */
     override render(): TemplateResult {
         const {
-            manifest: { name, version }, showSetting,
-            config, config: { shape, skin, size, zoom, cursor },
-            view: { loaded, width, height }
+            manifest: { name, version },
+            showSetting,
+            config,
+            config: { shape, skin, size, zoom, cursor },
+            view: { loaded, width, height },
         } = this;
-        return html`<dialog
-            class="dialog"
-            part="dialog"
-            style="--cursor: ${cursor}"
-            @close=${() => this.hide()}
-        >
+        return html`<dialog class="dialog" part="dialog" style="--cursor: ${cursor}" @close=${() => this.hide()}>
             <div
                 class="loupe"
                 part="loupe"
@@ -356,17 +341,13 @@ export class ExtSimpLoupeElement extends LitElement {
                 data-zoom=${zoom}
                 ?hidden=${!loaded}
                 @click=${(e: any) => {
-                    if ( this.loupe !== e.target ) {
+                    if (this.loupe !== e.target) {
                         return;
                     }
                     this.toggleSetting();
                 }}
             >
-                <canvas
-                    class="canvas"
-                    .width=${width}
-                    .height=${height}
-                ></canvas>
+                <canvas class="canvas" .width=${width} .height=${height}></canvas>
                 <div class="parts"></div>
 
                 <div class="setting" ?hidden=${!showSetting}>
@@ -376,52 +357,58 @@ export class ExtSimpLoupeElement extends LitElement {
                     </div>
                     <table class="table">
                         <tr>
-                            <th>${T( "label.zoom" )}:</th>
+                            <th>${T("label.zoom")}:</th>
                             <td>
-                                <input type="range" name="zoom" style="width: 80px;"
+                                <input
+                                    type="range"
+                                    name="zoom"
+                                    style="width: 80px;"
                                     min="2"
                                     max="5"
                                     .value=${zoom}
-                                    @input =${(e: any) => (config.zoom = Number(e.target.value)) && this.commit()}
+                                    @input=${(e: any) => (config.zoom = Number(e.target.value)) && this.commit()}
                                     @change=${(e: any) => (config.zoom = Number(e.target.value)) && this.commit()}
-                                >
+                                />
                             </td>
                         </tr>
                         <tr>
-                            <th>${T( "label.size" )}:</th>
+                            <th>${T("label.size")}:</th>
                             <td>
-                                <input type="range" name="size" style="width: 80px;"
+                                <input
+                                    type="range"
+                                    name="size"
+                                    style="width: 80px;"
                                     min="2"
                                     max="5"
                                     .value=${size}
-                                    @input =${(e: any) => (config.size = Number(e.target.value)) && this.commit()}
+                                    @input=${(e: any) => (config.size = Number(e.target.value)) && this.commit()}
                                     @change=${(e: any) => (config.size = Number(e.target.value)) && this.commit()}
-                                >
+                                />
                             </td>
                         </tr>
                         <tr>
-                            <th>${T( "label.shape" )}:</th>
+                            <th>${T("label.shape")}:</th>
                             <td @change=${(e: any) => (config.shape = e.target.value) && this.commit()}>
-                                <label><input type="radio" name="shape" value="round" .checked=${shape === "round"}> ${T( "shape.round" )}</label>
+                                <label><input type="radio" name="shape" value="round" .checked=${shape === "round"} /> ${T("shape.round")}</label>
                                 <!-- value="quare" は square の綴り間違いだが、保存済みの設定と非互換になるため据え置き。
                                      表示ラベルだけ正しい綴りにしている (キーは shape.square) -->
-                                <label><input type="radio" name="shape" value="quare" .checked=${shape === "quare"}> ${T( "shape.square" )}</label>
+                                <label><input type="radio" name="shape" value="quare" .checked=${shape === "quare"} /> ${T("shape.square")}</label>
                             </td>
                         </tr>
                         <tr>
-                            <th>${T( "label.skin" )}:</th>
+                            <th>${T("label.skin")}:</th>
                             <td @change=${(e: any) => (config.skin = e.target.value) && this.commit()}>
                                 <!-- 選択肢は数字なので翻訳しない -->
-                                <label><input type="radio" name="skin" value="1" .checked=${skin === "1"}> 1</label>
-                                <label><input type="radio" name="skin" value="2" .checked=${skin === "2"}> 2</label>
-                                <label><input type="radio" name="skin" value="3" .checked=${skin === "3"}> 3</label>
+                                <label><input type="radio" name="skin" value="1" .checked=${skin === "1"} /> 1</label>
+                                <label><input type="radio" name="skin" value="2" .checked=${skin === "2"} /> 2</label>
+                                <label><input type="radio" name="skin" value="3" .checked=${skin === "3"} /> 3</label>
                             </td>
                         </tr>
                         <tr>
-                            <th>${T( "label.cursor" )}:</th>
+                            <th>${T("label.cursor")}:</th>
                             <td @change=${(e: any) => (config.cursor = e.target.value) && this.commit()}>
-                                <label><input type="radio" name="cursor" value="crosshair" .checked=${cursor === "crosshair"}> ${T( "cursor.crosshair" )}</label>
-                                <label><input type="radio" name="cursor" value="none"      .checked=${cursor === "none"}> ${T( "cursor.none" )}</label>
+                                <label><input type="radio" name="cursor" value="crosshair" .checked=${cursor === "crosshair"} /> ${T("cursor.crosshair")}</label>
+                                <label><input type="radio" name="cursor" value="none" .checked=${cursor === "none"} /> ${T("cursor.none")}</label>
                             </td>
                         </tr>
                     </table>

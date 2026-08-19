@@ -47,21 +47,21 @@ const LANG_ALIAS: Record<string, string> = {
  * 3. それも無ければ同じ言語の変種を使う — pt しか渡されず pt-BR/pt-PT がある場合
  * 4. どれも無ければ FALLBACK_LANG
  */
-export function pickLang( lang: string, available: string[] = Object.keys( transData ) ): string {
-    if ( !lang ) {
+export function pickLang(lang: string, available: string[] = Object.keys(transData)): string {
+    if (!lang) {
         return FALLBACK_LANG;
     }
     const code = LANG_ALIAS[lang] ?? lang;
-    if ( available.includes( code ) ) {
+    if (available.includes(code)) {
         return code;
     }
-    const base = code.split( "-" )[0]!;
-    if ( available.includes( base ) ) {
+    const base = code.split("-")[0]!;
+    if (available.includes(base)) {
         return base;
     }
     // 並び順に依存しないよう、変種が複数あるときは常に同じものを選ぶ
     // (lib が ES2022 なので toSorted() は使えない。複製済みの配列なので sort() で問題ない)
-    return [ ...available ].filter( c => c.startsWith( `${base}-` ) ).sort()[0] ?? FALLBACK_LANG;
+    return [...available].filter((c) => c.startsWith(`${base}-`)).sort()[0] ?? FALLBACK_LANG;
 }
 
 /**
@@ -77,11 +77,11 @@ export function getUILang(): string {
     return globalThis.chrome?.i18n?.getUILanguage?.() || navigator.language || FALLBACK_LANG;
 }
 
-let _lang = pickLang( getUILang() );
+let _lang = pickLang(getUILang());
 
 /** 言語を差し替える (テストと動作確認用) */
-export function setLang( lang: string ): void {
-    _lang = pickLang( lang );
+export function setLang(lang: string): void {
+    _lang = pickLang(lang);
 }
 
 /** 現在選ばれている言語コード */
@@ -92,6 +92,6 @@ export function getLang(): string {
 /**
  * 文言を引く。訳が無ければ FALLBACK_LANG → キーそのもの、の順で返す
  */
-export function T( key: string ): string {
+export function T(key: string): string {
     return transData[_lang]?.[key] || transData[FALLBACK_LANG]?.[key] || key;
 }

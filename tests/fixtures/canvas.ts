@@ -9,15 +9,21 @@
 import { vi } from "vitest";
 
 export type DrawImageArgs = {
-    sx: number; sy: number; sw: number; sh: number;
-    dx: number; dy: number; dw: number; dh: number;
+    sx: number;
+    sy: number;
+    sw: number;
+    sh: number;
+    dx: number;
+    dy: number;
+    dw: number;
+    dh: number;
     image: unknown;
 };
 
 export type Fake2DContext = {
     clearRects: { x: number; y: number; w: number; h: number }[];
     drawImages: DrawImageArgs[];
-    saved:    number;
+    saved: number;
     restored: number;
 };
 
@@ -29,22 +35,26 @@ export function stubCanvas2D(): Fake2DContext {
     const record: Fake2DContext = {
         clearRects: [],
         drawImages: [],
-        saved:    0,
+        saved: 0,
         restored: 0,
     };
 
     const context = {
-        clearRect: ( x: number, y: number, w: number, h: number ) => { record.clearRects.push({ x, y, w, h }); },
-        save:      () => { record.saved++; },
-        restore:   () => { record.restored++; },
-        drawImage: (
-            image: unknown,
-            sx: number, sy: number, sw: number, sh: number,
-            dx: number, dy: number, dw: number, dh: number,
-        ) => { record.drawImages.push({ image, sx, sy, sw, sh, dx, dy, dw, dh }); },
+        clearRect: (x: number, y: number, w: number, h: number) => {
+            record.clearRects.push({ x, y, w, h });
+        },
+        save: () => {
+            record.saved++;
+        },
+        restore: () => {
+            record.restored++;
+        },
+        drawImage: (image: unknown, sx: number, sy: number, sw: number, sh: number, dx: number, dy: number, dw: number, dh: number) => {
+            record.drawImages.push({ image, sx, sy, sw, sh, dx, dy, dw, dh });
+        },
     };
 
-    vi.spyOn( HTMLCanvasElement.prototype, "getContext" ).mockReturnValue( context as never );
+    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(context as never);
 
     return record;
 }

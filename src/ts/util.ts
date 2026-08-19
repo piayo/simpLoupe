@@ -9,13 +9,13 @@
  */
 
 /** querySelector の薄いラッパ。見つからなければ null */
-export function qs<T extends HTMLElement>( query: string, context: Document|HTMLElement = document ): T|null {
-    return context.querySelector( query ) || null;
+export function qs<T extends HTMLElement>(query: string, context: Document | HTMLElement = document): T | null {
+    return context.querySelector(query) || null;
 }
 
 /** querySelectorAll を配列で返す (NodeList のままだと map / filter が使えない) */
-export function qsa<T extends HTMLElement>( query: string, context: Document|HTMLElement = document ): T[] {
-    return Array.from( context.querySelectorAll( query ) );
+export function qsa<T extends HTMLElement>(query: string, context: Document | HTMLElement = document): T[] {
+    return Array.from(context.querySelectorAll(query));
 }
 
 /**
@@ -27,9 +27,9 @@ export function qsa<T extends HTMLElement>( query: string, context: Document|HTM
  * 現状の挙動を固定するテストがあるので、直すときはそちらも直すこと
  * → docs/known-issues.md
  */
-export function getCSSTransitionDuration( element: HTMLElement ): number {
+export function getCSSTransitionDuration(element: HTMLElement): number {
     const duration = window.getComputedStyle(element).transitionDuration;
-    const msec = (parseFloat(duration) || 0) * ( duration.endsWith("s") ? 1000 : 1 );
+    const msec = (parseFloat(duration) || 0) * (duration.endsWith("s") ? 1000 : 1);
     return msec;
 }
 
@@ -37,7 +37,7 @@ export function getCSSTransitionDuration( element: HTMLElement ): number {
  * イベントの伝播を完全に止める。
  * 同じ要素に付いた他のリスナーまで止めるので `stopImmediatePropagation` も呼ぶ。
  */
-export function stopPropagation( event: Event ): void {
+export function stopPropagation(event: Event): void {
     event.stopPropagation();
     event.stopImmediatePropagation();
 }
@@ -49,33 +49,31 @@ export function stopPropagation( event: Event ): void {
  * **内部のイベントを外に漏らさない**のが既定の挙動になる。
  * 外に出したいときは呼び出し側で `composed: true` を渡すこと。
  */
-export function dispatchEvent(
-    element:   HTMLElement|Document|Window,
-    eventName: string,
-    option:    CustomEventInit = {},
-): void {
-    if ( !element ) {
+export function dispatchEvent(element: HTMLElement | Document | Window, eventName: string, option: CustomEventInit = {}): void {
+    if (!element) {
         return;
     }
 
     element.dispatchEvent(
-        new CustomEvent( eventName, {
+        new CustomEvent(eventName, {
             bubbles: true,
             cancelable: true,
             composed: false,
             ...option,
-        })
+        }),
     );
 }
 
 /** 何もしない関数。コールバックの差し替え先として使う */
-export const noop = function(){ /* noop */ };
+export const noop = function () {
+    /* noop */
+};
 
 /**
  * 指定ミリ秒待つ。引数名は secTime だが**単位はミリ秒**（setTimeout にそのまま渡している）
  */
 export async function delay(secTime: number): Promise<void> {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
         setTimeout(() => resolve(), secTime);
     });
 }
@@ -84,10 +82,10 @@ export async function delay(secTime: number): Promise<void> {
  * 最後の呼び出しから delay ミリ秒何も来なければ実行する。
  * scroll / resize のような連続イベントを間引く用途。
  */
-export function debounce<T extends (...args: any[]) => unknown>( callback: T, delay = 250 ): ((...args: Parameters<T>) => void) {
+export function debounce<T extends (...args: any[]) => unknown>(callback: T, delay = 250): (...args: Parameters<T>) => void {
     let timeoutId: any;
     return (...args) => {
-        clearTimeout(timeoutId)
-        timeoutId = setTimeout(() => callback(...args), delay)
-    }
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => callback(...args), delay);
+    };
 }

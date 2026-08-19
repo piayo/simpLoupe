@@ -13,7 +13,7 @@
  */
 export type Config = {
     /** 外観のバリエーション。styles.ts の `[data-skin='...']` に対応する */
-    skin:   "1" | "2" | "3";
+    skin: "1" | "2" | "3";
     /**
      * ルーペの形。
      *
@@ -21,11 +21,11 @@ export type Config = {
      * 表示ラベルだけ src/i18n/ui/ 側で `square`（正しい綴り）にしてある。
      * キーと値が一致していないことを承知して触ること。
      */
-    shape:  "round" | "quare";
+    shape: "round" | "quare";
     /** 大きさ。2〜5。一辺は `160 + 80 * size` px になる */
-    size:   number;
+    size: number;
     /** 拡大率。2〜5 */
-    zoom:   number;
+    zoom: number;
     /** ルーペ内のカーソル。`"crosshair"` か `"none"`（CSS の cursor にそのまま流す） */
     cursor: string;
-}
+};
